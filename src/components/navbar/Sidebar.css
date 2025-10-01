@@ -1,0 +1,284 @@
+.sidebar-menu {
+  position: fixed;
+  top: 60px; /* oldingi 60px emas! */
+  left: 0;
+  width: 300px;
+  height: 900px;
+  border-right: 1px solid rgba(128, 128, 128, 0.39);
+  padding: 10px;
+  -webkit-box-shadow: 2px 0px 8px 2px rgba(34, 60, 80, 0.09);
+  -moz-box-shadow: 2px 0px 8px 2px rgba(34, 60, 80, 0.09);
+  box-shadow: 2px 0px 8px 2px rgba(34, 60, 80, 0.09);
+  overflow-y: auto;
+  z-index: 1000;
+  transition: width 0.3s ease;
+  border-bottom-right-radius: 60px;
+  overflow-x: hidden;
+}
+
+.sidebar-menu.collapsed {
+  width: 75px;
+  height: 900px;
+  padding: 3px;
+  overflow: visible;
+  border-bottom-right-radius: 60px;
+}
+.sidebar-menu.collapsed li a {
+  justify-content: start;
+}
+
+.sidebar-menu .logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+}
+
+.sidebar-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-top: 10px;
+}
+
+.sidebar-menu li {
+  margin-bottom: 1rem;
+  position: relative;
+}
+.sidebar-menu li a:hover {
+  transition: all 0.2s ease-in;
+  background-color: #1e293b27;
+}
+
+.sidebar-menu li a {
+  color: inherit;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+.submenu-title {
+  display: flex;
+
+  align-items: center;
+  gap: 8px;
+}
+
+.submenu {
+  margin-left: 1.5rem;
+  padding-left: 0;
+  overflow: hidden;
+}
+
+.submenu li a {
+  font-size: 0.9rem;
+  padding: 0.4rem 0.5rem;
+
+  border-radius: 4px;
+}
+
+.submenu.open {
+  max-height: 500px; /* Yetarlicha katta bo‘lishi kerak (agar >5 element bo‘lsa) */
+}
+.submenu-arrow {
+  transition: transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+  /* Avval 0.3s edi — endi sekinroq */
+  display: inline-block;
+  visibility: visible !important;
+}
+.submenu-arrow.rotate {
+  transform: rotate(90deg); /* Pastga qaraydi */
+}
+
+.motion-submenu {
+  overflow: hidden;
+}
+.sidebar-item-with-children {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  justify-content: space-between; /* <-- bu ikonka avtomatik o‘ngga ketadi */
+}
+
+.submenu-arrow-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+}
+
+.submenu-arrow {
+  transition: transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
+
+  color: #cbd5e1;
+}
+
+.submenu-arrow.rotate {
+  transform: rotate(90deg);
+}
+.sidebar-item-icon-title {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-menu.collapsed li {
+  width: 100%;
+}
+.sidebar-menu.collapsed .sidebar-item-with-children {
+  justify-content: center;
+}
+
+/* Collapsed (yopiq) holatda icon pastga tushsin */
+.sidebar-menu.collapsed .sidebar-item-icon-title {
+  flex-direction: column;
+  gap: 4px;
+}
+.sidebar-menu.collapsed .submenu-title {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-menu.collapsed .sidebar-item-title {
+  font-size: 9px;
+  text-align: center;
+  word-break: break-word;
+  margin: 0;
+}
+
+.sidebar-menu.open .sidebar-item-title {
+  font-size: 13px;
+  text-align: left;
+  margin: 0;
+  margin-left: 5px;
+}
+/* Faqat collapsed holatida hoverda submenu ko‘rsatish */
+.sidebar-menu.collapsed li:hover .motion-submenu {
+  display: block;
+  position: absolute;
+  left: 70px;
+  top: 0;
+  background: #1e293b;
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  border-radius: 6px;
+  z-index: 999;
+  width: 180px;
+}
+
+.sidebar-menu.collapsed .motion-submenu {
+  display: none !important;
+  height: auto !important;
+  opacity: 1 !important;
+}
+.sidebar-menu.collapsed .submenu-hover {
+  left: 50px;
+  top: 0;
+  padding: 8px 0;
+  border-radius: 6px;
+  z-index: 999;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+}
+/* Faqat hover bo‘lganda submenu chiqsin */
+.sidebar-menu.collapsed li:hover > .submenu-hover {
+  display: block;
+}
+.sidebar-menu.collapsed li {
+  position: relative;
+}
+
+/* Submenu hover konteyner */
+.sidebar-menu.collapsed .submenu-hover-wrapper {
+  position: absolute;
+  left: 108%;
+  top: 0.5rem;
+
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
+
+  border-radius: 6px;
+  z-index: 9999;
+  min-width: 200px;
+}
+
+/* Hover bo‘lsa submenu ko‘rsat */
+
+.submenu-hover {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.submenu-hover li a {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  text-decoration: none;
+}
+
+/* Asosiy hover qoidalari */
+.sidebar-menu.collapsed li {
+  position: relative;
+}
+
+.submenu-hover {
+  list-style: none;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.submenu-hover li {
+  padding: 0.2rem 0.8rem;
+  text-align: center;
+  margin-bottom: 2px;
+}
+
+.submenu-hover li:hover {
+  background-color: #285aa069;
+}
+
+.submenu-hover li a {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  text-decoration: none;
+}
+.sidebar-menu.collapsed li:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-menu li a:focus,
+.sidebar-menu li a:focus-visible {
+  outline: none;
+  background-color: rgba(16, 94, 204, 0.158);
+  transition: background-color 0.3s ease;
+}
+/* Umumiy link uslubi */
+.sidebar-link {
+  display: block;
+  text-decoration: none;
+  padding: 0.5rem;
+  border-radius: 6px;
+  color: inherit;
+}
+
+/* Faollik ranglari: DARK mode */
+.sidebar-link.active.dark-mode {
+  background-color: #33548375;
+  color: #42a5f5;
+}
+
+/* Faollik ranglari: LIGHT mode */
+.sidebar-link.active.light-mode {
+  background-color: #285aa03d;
+  color: #1565c0;
+}
