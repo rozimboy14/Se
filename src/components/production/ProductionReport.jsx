@@ -263,8 +263,9 @@ function ProductionReport() {
                 <TableCell sx={{ width: '10%', textAlign: "center", fontWeight: "600", fontSize: "12px", padding: "5px 10px" }}>Yil-Oy</TableCell>
                 <TableCell sx={{ width: '10%', textAlign: "center", fontWeight: "600", fontSize: "12px", padding: "5px 10px" }}>Jami reja</TableCell>
                 <TableCell sx={{ width: '5%', textAlign: "center", fontWeight: "600", fontSize: "12px", padding: "5px 10px" }}>Ish kuni</TableCell>
-                <TableCell sx={{ width: '10%', textAlign: "center", fontWeight: "600", fontSize: "12px", padding: "5px 10px" }}>1-sort</TableCell>
-                <TableCell sx={{ width: '10%', textAlign: "center", fontWeight: "600", fontSize: "12px", padding: "5px 10px" }}>2-sort</TableCell>
+                <TableCell sx={{ width: '5%', textAlign: "center", fontWeight: "600", fontSize: "12px", padding: "5px 10px" }}>1-sort</TableCell>
+                <TableCell sx={{ width: '5%', textAlign: "center", fontWeight: "600", fontSize: "12px", padding: "5px 10px" }}>2-sort</TableCell>
+                <TableCell sx={{ width: '5%', textAlign: "center", fontWeight: "600", fontSize: "12px", padding: "5px 10px" }}>Brak</TableCell>
                 <TableCell sx={{ width: '15%', textAlign: "center", fontWeight: "600", fontSize: "12px", padding: "5px 10px" }}>%</TableCell>
                 <TableCell sx={{ width: '25%', textAlign: "center", fontWeight: "600", fontSize: "12px", padding: "5px 10px" }}>Izox</TableCell>
                 <TableCell sx={{ width: "10%", textAlign: "center", fontWeight: "600", fontSize: "12px", padding: "5px 10px" }}>Действия</TableCell>
@@ -282,6 +283,7 @@ function ProductionReport() {
                   <TableCell sx={{ textAlign: "center", fontSize: "13px", padding: "2px 10px" }}>{formatNumber(item.day)}</TableCell>
                   <TableCell sx={{ textAlign: "center", fontSize: "13px", padding: "2px 10px" }}>{formatNumber(item.total_sort_1)}</TableCell>
                   <TableCell sx={{ textAlign: "center", fontSize: "13px", padding: "2px 10px" }}>{formatNumber(item.total_sort_2)}</TableCell>
+                  <TableCell sx={{ textAlign: "center", fontSize: "13px", padding: "2px 10px" }}>{formatNumber(item.total_defect)}</TableCell>
                   <TableCell sx={{ textAlign: "center", padding: "2px 10px", width: "150px" }}>
                     <Box sx={{ position: "relative", display: "flex", alignItems: "center" }}>
                       <LinearProgress
