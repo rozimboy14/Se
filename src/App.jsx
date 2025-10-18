@@ -4,7 +4,7 @@ import {
   Routes,
   Route,
   Navigate,
-  
+
 } from "react-router-dom";
 import './App.css';
 
@@ -27,7 +27,6 @@ import NormCategory from "./components/production/NormCategory";
 import Daily from "./components/production/Daily";
 import Line from "./components/production/Line";
 import LineOrders from "./components/production/LineOrders";
-import { Dashboard } from "@mui/icons-material";
 import StockTotalEntry from "./components/stock/StockTotalEntry";
 import StockEntry from "./components/stock/StockEntry";
 import StockDetail from "./components/stock/StockDetail";
@@ -40,6 +39,7 @@ import AccessoryStockDetailAll from "./components/stock/AccessoryStockDetailAll"
 import StockDetailCategory from "./components/stock/StockDetailCategory";
 import MonthPlaning from "./components/production/MonthPlaning";
 import MonthPlaningOrder from "./components/production/MonthPlaningOrder";
+
 import Barcode from "./components/production/Barcode";
 import { breadcrumbTree, flattenBreadcrumbTree } from "./components/navbar/breadcrumbConfig";
 import StockPackaging from "./components/packagingStock/StockPackaging";
@@ -47,6 +47,9 @@ import StockPackaging from "./components/packagingStock/StockPackaging";
 import CategoryStockPackaging from "./components/packagingStock/CategoryStockPackaging";
 import StockPackagingDetailAll from "./components/packagingStock/StockPackagingDetailAll";
 import StockPackagingDetail from "./components/packagingStock/StockPackagingDetail";
+import ChartProductionReportDaily from "./components/dashboard/ChartProductionReportDaily";
+import Login from "./components/Users/Login";
+import LoginSewing from "./components/Users/LoginSewing";
 
 console.log(flattenBreadcrumbTree(breadcrumbTree)); // 👈 bu ham ishlaydi
 function App() {
@@ -56,9 +59,10 @@ function App() {
     <ErrorBoundary>
       <Router>
         <Routes>
+          <Route path="/login" element={<LoginSewing />} />
           <Route element={<Layout />}>
             <Route path="/" element={<Navigate to="/dashboard" />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<ChartProductionReportDaily />} />
             <Route path="/sewing/brand" element={<Brand />} />
             <Route path="/sewing/specification" element={<Specification />} />
             <Route
@@ -69,12 +73,12 @@ function App() {
               path="/sewing/sewing-category"
               element={<SewingCategory />}
             />
-          
+
             <Route path="/sewing/article" element={<Article />} />
             <Route path="/sewing/accessory" element={<Accessory />} />
             <Route path="/sewing/orders" element={<Orders />} />
             <Route path="/stock/stock" element={<Stock />} />
-              <Route
+            <Route
               path="/stock/accessory-stock/"
               element={<StockAccessory />}
             />
@@ -127,11 +131,11 @@ function App() {
             />
             <Route
               path="/packaging/stock-packaging/:brand_Id/:warehouseId/"
-              element={<StockPackagingDetail/>}
+              element={<StockPackagingDetail />}
             />
             <Route
               path="/packaging/stock-packaging/All/:warehouseId/"
-              element={<StockPackagingDetailAll/>}
+              element={<StockPackagingDetailAll />}
             />
             <Route
               path="/packaging/stock-packaging/category/:warehouseId/:category_id"

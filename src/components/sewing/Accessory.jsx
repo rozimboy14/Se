@@ -1,4 +1,4 @@
-import { Box, Button, Container, useTheme } from "@mui/material";
+import { Box, Button, Container, useTheme,InputAdornment, TextField, } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { ButtonGroup, IconButton } from "@mui/material";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
@@ -7,7 +7,9 @@ import ImageIcon from '@mui/icons-material/Image';
 import DeleteModal from "../componet/DeleteModal";
 import AddAccessory from "../componet/AddAccessory";
 import EditAccessory from "../componet/EditAccessory";
-
+import SearchIcon from "@mui/icons-material/Search";
+import { Pagination } from "@mui/material";
+import { Select, MenuItem } from "@mui/material";
 import {
   Table,
   TableBody,
@@ -27,8 +29,8 @@ import {
 } from "../api/axios";
 
 function Accessory() {
-         const theme = useTheme();
-          const isDark = theme.palette.mode === "dark";
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
   const [accessories, setAccessories] = useState([]);
   const [loadingFetch, setLoadingFetch] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -37,13 +39,22 @@ function Accessory() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editAccessory, setEditAccessory] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
-
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [start, setStart] = useState({ x: 0, y: 0 });
+  const [searchText, setSearchText] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [count, setCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
 
 
+
+  const handleSearch = () => {
+    setSearchQuery(searchText);
+    setPage(1); // qidiruvda sahifani 1 ga qaytarish
+  };
 
   const handleWheel = (e) => {
     e.preventDefault();
@@ -76,9 +87,13 @@ function Accessory() {
     const fetchAccessories = async () => {
       setLoadingFetch(true);
       try {
-        const response = await getAccessory();
-        setAccessories(response.data);
-        console.log(`response.data`, response.data);
+        const response = await getAccessory({
+          search: searchQuery, // searchQuery ishlaydi
+          page,
+          page_size: pageSize
+        });
+        setAccessories(response.data.results);
+             setCount(response.data.count);
       } catch (error) {
         console.error("Ошибка при загрузке аксессуаров:", error);
       } finally {
@@ -86,7 +101,7 @@ function Accessory() {
       }
     };
     fetchAccessories();
-  }, []);
+  }, [searchQuery, page, pageSize]);
 
   const handleAddAccessory = async (item) => {
     console.log(`Item`, item);
@@ -142,7 +157,7 @@ function Accessory() {
 
   return (
     <Container maxWidth="full">
-      <Box sx={{ width: "100%", height: "100%" }}>
+      <Box sx={{ width: "100%", height: "740px" }}>
         <Box
           sx={{
             width: "100%",
@@ -152,9 +167,35 @@ function Accessory() {
             padding: "5px",
           }}
         >
-          <Box sx={{ flex: 1, textAlign: "center" }}>
-            <h3 style={{margin: 0,marginBottom:"8px"}}>Аксессуары</h3>
-          </Box>
+          <TextField
+            size="small"
+            placeholder="Поиск..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSearch();
+              }
+            }}
+            sx={{
+              "& .MuiInputBase-root": { height: 25, fontSize: 12, paddingRight: 2 }
+            }}
+            InputProps={{
+
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={handleSearch} edge="end" sx={{
+                    "&:hover": { backgroundColor: "transparent" } // hover effektni olib tashlash
+                  }} >
+                    <SearchIcon sx={{ fontSize: "17px" }} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <h3 style={{ margin: 0, marginBottom: "8px" }}>Аксессуары</h3>
+
           <Button
             size="small"
             sx={{ fontSize: "10px" }}
@@ -165,18 +206,20 @@ function Accessory() {
           </Button>
         </Box>
 
-        <TableContainer component={Paper} sx={{ width: "100%" ,backgroundColor: isDark ? "#0e1c26" : "white",}}>
-          <Table>
+        <TableContainer component={Paper} sx={{ width: "100%", backgroundColor: isDark ? "#0e1c26" : "white", maxHeight: "100%",  // vertikal scroll uchun maksimal balandlik
+          overflowY: "auto", // vertikal scroll
+          overflowX: "auto",}}>
+          <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ width: 60 ,fontSize:"12px",padding:"5px 10px"}}>№</TableCell>
-                <TableCell sx={{ textAlign: "center",fontSize:"12px",padding:"5px 10px" }}>Название</TableCell>
-                <TableCell sx={{ textAlign: "center",fontSize:"12px",padding:"5px 10px" }}>Бренд</TableCell>
-                <TableCell sx={{ textAlign: "center",fontSize:"12px",padding:"5px 10px" }}>Примичения</TableCell>
-                <TableCell sx={{ textAlign: "center",fontSize:"12px",padding:"5px 10px" }}>тип</TableCell>
-  
+                <TableCell sx={{ width: 60, fontSize: "12px", padding: "5px 10px" }}>№</TableCell>
+                <TableCell sx={{ textAlign: "center", fontSize: "12px", padding: "5px 10px" }}>Название</TableCell>
+                <TableCell sx={{ textAlign: "center", fontSize: "12px", padding: "5px 10px" }}>Бренд</TableCell>
+                <TableCell sx={{ textAlign: "center", fontSize: "12px", padding: "5px 10px" }}>Примичения</TableCell>
+                <TableCell sx={{ textAlign: "center", fontSize: "12px", padding: "5px 10px" }}>тип</TableCell>
 
-                <TableCell sx={{ width: 120, textAlign: "center",fontSize:"12px",padding:"5px 10px" }}>
+
+                <TableCell sx={{ width: 120, textAlign: "center", fontSize: "12px", padding: "5px 10px" }}>
                   Действия
                 </TableCell>
               </TableRow>
@@ -184,29 +227,29 @@ function Accessory() {
             <TableBody>
               {accessories?.map((item, index) => (
                 <TableRow key={item.id}>
-                  <TableCell sx={{ textAlign: "center",fontSize:"13px",padding:"2px 6px" }}>{index + 1}</TableCell>
-                  <TableCell sx={{ textAlign: "center",fontSize:"13px",padding:"2px 6px" }}>{item.name}</TableCell>
-                  <TableCell sx={{ textAlign: "center",fontSize:"13px",padding:"2px 6px" }}>{item.brand_name}</TableCell>
-                  <TableCell sx={{ textAlign: "center",fontSize:"13px",padding:"2px 6px" }}>{item.comment}</TableCell>
-                  <TableCell sx={{ textAlign: "center",fontSize:"12px",padding:"2px 6px" }}>{item.type_display}</TableCell>
+                  <TableCell sx={{ textAlign: "center", fontSize: "13px", padding: "2px 6px" }}>{index + 1}</TableCell>
+                  <TableCell sx={{ textAlign: "center", fontSize: "13px", padding: "2px 6px" }}>{item.name}</TableCell>
+                  <TableCell sx={{ textAlign: "center", fontSize: "13px", padding: "2px 6px" }}>{item.brand_name}</TableCell>
+                  <TableCell sx={{ textAlign: "center", fontSize: "13px", padding: "2px 6px" }}>{item.comment}</TableCell>
+                  <TableCell sx={{ textAlign: "center", fontSize: "12px", padding: "2px 6px" }}>{item.type_display}</TableCell>
 
 
-                  <TableCell sx={{ textAlign: "center",padding:"2px 6px"  }}>
+                  <TableCell sx={{ textAlign: "center", padding: "2px 6px" }}>
                     <ButtonGroup size="small">
-                        <IconButton onClick={() => setSelectedImage(item.image)}>
-                      <ImageIcon sx={{ fontSize: "18px"  }} />
-                    </IconButton>
+                      <IconButton onClick={() => setSelectedImage(item.image)}>
+                        <ImageIcon sx={{ fontSize: "18px" }} />
+                      </IconButton>
                       <IconButton
                         onClick={() => handleEdit(item.id)}
                         sx={{ color: "green" }}
                       >
-                        <EditIcon sx={{fontSize:"18px" }} />
+                        <EditIcon sx={{ fontSize: "18px" }} />
                       </IconButton>
                       <IconButton
                         onClick={() => handleDelete(item.id)}
                         sx={{ color: "red" }}
                       >
-                        <DeleteForeverIcon  sx={{fontSize:"18px" }} />
+                        <DeleteForeverIcon sx={{ fontSize: "18px" }} />
                       </IconButton>
                     </ButtonGroup>
                   </TableCell>
@@ -215,7 +258,30 @@ function Accessory() {
             </TableBody>
           </Table>
         </TableContainer>
-    <Modal
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 1 }}>
+          <Select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(e.target.value);
+              setPage(1);
+            }}
+            size="small"
+            sx={{ fontSize: "12px", padding: "1px" }}
+          >
+            {[25, 50, 75].map((s) => (
+              <MenuItem key={s} value={s}>{s} на страницу</MenuItem>
+            ))}
+          </Select>
+
+          <Pagination
+            count={Math.ceil(count / pageSize)}
+            page={page}
+            onChange={(e, value) => setPage(value)}
+            color="primary"
+            size="small"
+          />
+        </Box>
+        <Modal
           open={Boolean(selectedImage)}
           onClose={() => {
             setSelectedImage(null);

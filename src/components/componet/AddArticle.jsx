@@ -16,7 +16,7 @@ import {
   getSewinggCategory,
   getAccessory,
 } from "../api/axios";
-
+import { debounce } from "lodash";
 const AddArticle = ({ open, onClose, onAdd }) => {
   const [form, setForm] = useState({
     name: "",
@@ -32,18 +32,19 @@ const AddArticle = ({ open, onClose, onAdd }) => {
   const [sewingOptions, setSewingOptions] = useState([]);
   const [packagingOptions, setPackagingOptions] = useState([]);
   const [accessoryOptions, setAccessoryOptions] = useState([]);
-
+const [searchText, setSearchText] = useState("");
+  const [loadingFetch, setLoadingFetch ] = useState(false);
   useEffect(() => {
     if (open) {
       const fetchData = async () => {
         try {
-          const [brands, sewing, packaging, accessories] = await Promise.all([
-            getBrand(),
+          const [sewing, packaging, accessories] = await Promise.all([
+ 
             getSewinggCategory(),
             getPackagingCategory(),
             getAccessory(),
           ]);
-          setBrandOptions(brands.data);
+
           setSewingOptions(sewing.data);
           setPackagingOptions(packaging.data);
           setAccessoryOptions(accessories.data);
@@ -54,6 +55,25 @@ const AddArticle = ({ open, onClose, onAdd }) => {
       fetchData();
     }
   }, [open]);
+
+
+
+const debouncedFetch = debounce(async (text, setBrand, setLoadingFetch) => {
+  setLoadingFetch(true);
+  try {
+    const response = await getBrand({ search: text, page_size: 20 });
+    setBrandOptions(response.data.results);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoadingFetch(false);
+  }
+}, 300); // 300ms delay
+
+useEffect(() => {
+  debouncedFetch(searchText, setBrandOptions, setLoadingFetch);
+}, [searchText]);
+
 
   const handleChange = (key) => (e) => {
     setForm({ ...form, [key]: e.target.value });
@@ -182,6 +202,7 @@ const AddArticle = ({ open, onClose, onAdd }) => {
           options={brandOptions}
           getOptionLabel={(option) => option.name || ""}
           value={form.brand}
+          onInputChange={(e, value) => setSearchText(value)}
           onChange={(e, value) => setForm({ ...form, brand: value })}
           renderInput={(params) => (
             <TextField {...params} label="Brand" InputProps={{

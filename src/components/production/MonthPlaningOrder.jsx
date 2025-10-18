@@ -43,7 +43,7 @@ function MonthPlaningOrder() {
 
 
     const handleDelete = (id) => {
-        const item = monthPlaningOrder.find((b) => b.id === id);
+        const item = monthPlaningOrder?.month_planing_orders?.find((b) => b.id === id);
         setSelectedMonthPlaningOrder(item);
         setDeleteModalOpen(true);
     };
@@ -78,7 +78,13 @@ function MonthPlaningOrder() {
         console.log(item);
         try {
             const response = await postMonthPlaningOrder(data);
-            setMonthPlaningOrder(prev => [...prev, ...(Array.isArray(response.data) ? response.data : [response.data])]);
+            setMonthPlaningOrder(prev => ({
+            ...prev,
+            month_planing_orders: [
+                ...(prev.month_planing_orders || []),
+                ...(Array.isArray(response.data) ? response.data : [response.data])
+            ]
+        }));
         } catch (err) {
             console.error("Add failed:", err);
         } finally {
@@ -87,7 +93,7 @@ function MonthPlaningOrder() {
     };
 
     const handleEdit = (id) => {
-        const item = monthPlaningOrder.find((b) => b.id === id);
+        const item = monthPlaningOrder.month_planing_orders?.find((b) => b.id === id);
         setEditMonthPlaningOrder(item);
         console.log(item);
 

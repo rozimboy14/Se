@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { getArticle, getSpecification } from "../api/axios";
 import { Add, Delete } from "@mui/icons-material";
-
+import { debounce } from "lodash";
 const EditOrders = ({ open, onClose, onUpdate, initialData }) => {
   const [form, setForm] = useState({
     specification: null,
@@ -23,42 +23,68 @@ const EditOrders = ({ open, onClose, onUpdate, initialData }) => {
 
   const [articleOptions, setArticleOptions] = useState([]);
   const [specificationOptions, setSpecificationOptions] = useState([]);
-
+  const [searchText, setSearchText] = useState("");
+  const [searchSeason, setSearchSeason] = useState("");
+  const [loadingFetch, setLoadingFetch] = useState(false);
   // 🔹 Select optionsni olish
   useEffect(() => {
     if (open) {
-      const fetchData = async () => {
-        try {
-          const [specifications, articleRes] = await Promise.all([
-            getSpecification(),
-            getArticle(),
-          ]);
-          setSpecificationOptions(specifications.data);
-          setArticleOptions(articleRes.data);
-        } catch (error) {
-          console.error("Ошибка при загрузке категорий:", error);
-        }
+      const fetchInitial = async () => {
+        const [articleRes, specRes] = await Promise.all([
+          getArticle({ page_size: 20 }),
+          getSpecification({ page_size: 20 }),
+        ]);
+        setArticleOptions(articleRes.data.results);
+        setSpecificationOptions(specRes.data.results);
       };
-      fetchData();
+      fetchInitial();
     }
   }, [open]);
 
+
+  const createDebouncedFetch = (apiFunc, setOptions, setLoading) =>
+    debounce(async (text) => {
+      setLoading(true);
+      try {
+        const response = await apiFunc({ search: text, page_size: 20 });
+        setOptions(response.data.results);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+
+  const debouncedFetchArticle = createDebouncedFetch(getArticle, setArticleOptions, setLoadingFetch);
+  const debouncedFetchSpecification = createDebouncedFetch(getSpecification, setSpecificationOptions, setLoadingFetch);
+
+  useEffect(() => {
+    if (open) debouncedFetchArticle(searchText);
+    return () => debouncedFetchArticle.cancel();
+  }, [searchText, open]);
+
+  useEffect(() => {
+    if (open) debouncedFetchSpecification(searchSeason);
+    return () => debouncedFetchSpecification.cancel();
+  }, [searchSeason, open]);
+
   // 🔹 Formani to‘ldirish (initialData bilan)
   useEffect(() => {
-    if (initialData) {
-      setForm({
-        specification:
-          specificationOptions.find(
-            (b) => b.id === initialData.specification
-          ) || null,
-        article:
-          articleOptions.find((b) => b.id === initialData.article) || null,
+    if (initialData && open) {
+      setForm((prev) => ({
+        ...prev,
+        specification: specificationOptions.find(
+          (b) => b.id === initialData.specification
+        ) || prev.specification,
+        article: articleOptions.find(
+          (b) => b.id === initialData.article
+        ) || prev.article,
         comment: initialData.comment || "",
         quantity: initialData.quantity || "",
-        variants: initialData.variant_link || [], // 🔹 backenddan kelgan variantlarni yozib qo‘yamiz
-      });
+        variants: initialData.variant_link || [],
+      }));
     }
-  }, [initialData, specificationOptions, articleOptions]);
+  }, [initialData, specificationOptions, articleOptions, open]);
 
   // 🔹 Input change
   const handleChange = (field) => (e) => {
@@ -124,24 +150,30 @@ const EditOrders = ({ open, onClose, onUpdate, initialData }) => {
         <Autocomplete
           options={specificationOptions}
           getOptionLabel={(option) => option.name || ""}
+          loading={loadingFetch}
           value={form.specification}
-          onChange={(e, value) => setForm({ ...form, specification: value })}
+          inputValue={searchSeason} // 🔹 yozilayotgan matn
+          onInputChange={(e, value) => setSearchSeason(value)} // 
+          onChange={(e, value) => {
+            setForm((prev) => ({ ...prev, specification: value }));
+            setSearchSeason(value?.name || ""); // 🔹 value bilan ham sync
+          }}
           renderInput={(params) => (
             <TextField {...params} label="Сезон" InputProps={{
-                    ...params.InputProps,
-                    sx: {
-                      height: 35,        // 🔹 balandlik
-                      fontSize: 14       // 🔹 shrift
-                    }
-                  }}
-                  sx={{
-                    "& .MuiInputLabel-root": {
-                      fontSize: "14px",   // Label shrift
-                      top: "-7px",  
-                   // Label rangi
-                    },
-                       mb:2  
-                  }}/>
+              ...params.InputProps,
+              sx: {
+                height: 35,        // 🔹 balandlik
+                fontSize: 14       // 🔹 shrift
+              }
+            }}
+              sx={{
+                "& .MuiInputLabel-root": {
+                  fontSize: "14px",   // Label shrift
+                  top: "-7px",
+                  // Label rangi
+                },
+                mb: 2
+              }} />
           )}
         />
 
@@ -149,22 +181,29 @@ const EditOrders = ({ open, onClose, onUpdate, initialData }) => {
           options={articleOptions}
           getOptionLabel={(option) => option.full_name || ""}
           value={form.article}
-          onChange={(e, value) => setForm({ ...form, article: value })}
+          loading={loadingFetch}
+          inputValue={searchText} // 🔹 yozilayotgan matn
+          onInputChange={(e, value) => setSearchText(value)}
+          onChange={(e, value) => {
+            setForm((prev) => ({ ...prev, article: value }));
+            setSearchText(value?.full_name || ""); // 🔹 value bilan ham sync
+          }}
+
           renderInput={(params) => (
-            <TextField {...params} label="Модель"InputProps={{
-                    ...params.InputProps,
-                    sx: {
-                      height: 35,        // 🔹 balandlik
-                      fontSize: 14       // 🔹 shrift
-                    }
-                  }}
-                  sx={{
-                    "& .MuiInputLabel-root": {
-                      fontSize: "14px",   // Label shrift
-                      top: "-7px"    // Label rangi
-                    },
-                       mb:2  
-                  }}/>
+            <TextField {...params} label="Модель" InputProps={{
+              ...params.InputProps,
+              sx: {
+                height: 35,        // 🔹 balandlik
+                fontSize: 14       // 🔹 shrift
+              }
+            }}
+              sx={{
+                "& .MuiInputLabel-root": {
+                  fontSize: "14px",   // Label shrift
+                  top: "-7px"    // Label rangi
+                },
+                mb: 2
+              }} />
           )}
         />
 
@@ -174,18 +213,18 @@ const EditOrders = ({ open, onClose, onUpdate, initialData }) => {
           value={form.comment}
           onChange={handleChange("comment")}
           variant="outlined"
-            InputProps={{
-                sx: {
-                  height: 35,              // 🔹 balandlik
-                  fontSize: 14             // 🔹 shrift
-                }
-              }}
-              sx={{
-                mb: 2, "& .MuiInputLabel-root": {
-                  fontSize: "14px",   // Label shrift
-                  top: "-7px"    // Label rangi
-                },
-              }}
+          InputProps={{
+            sx: {
+              height: 35,              // 🔹 balandlik
+              fontSize: 14             // 🔹 shrift
+            }
+          }}
+          sx={{
+            mb: 2, "& .MuiInputLabel-root": {
+              fontSize: "14px",   // Label shrift
+              top: "-7px"    // Label rangi
+            },
+          }}
         />
 
         <TextField
@@ -196,17 +235,17 @@ const EditOrders = ({ open, onClose, onUpdate, initialData }) => {
           onChange={handleChange("quantity")}
           variant="outlined"
           InputProps={{
-                sx: {
-                  height: 35,              // 🔹 balandlik
-                  fontSize: 14             // 🔹 shrift
-                }
-              }}
-              sx={{
-                 mb: 3, "& .MuiInputLabel-root": {
-                  fontSize: "14px",   // Label shrift
-                  top: "-7px"    // Label rangi
-                },
-              }}
+            sx: {
+              height: 35,              // 🔹 balandlik
+              fontSize: 14             // 🔹 shrift
+            }
+          }}
+          sx={{
+            mb: 3, "& .MuiInputLabel-root": {
+              fontSize: "14px",   // Label shrift
+              top: "-7px"    // Label rangi
+            },
+          }}
         />
 
         {/* 🔹 Variantlar */}
@@ -221,18 +260,18 @@ const EditOrders = ({ open, onClose, onUpdate, initialData }) => {
               onChange={(e) =>
                 handleVariantChange(index, "name", e.target.value)
               }
-        InputProps={{
+              InputProps={{
                 sx: {
                   height: 35,              // 🔹 balandlik
                   fontSize: 14             // 🔹 shrift
                 }
               }}
               sx={{
-                 mb: 2, "& .MuiInputLabel-root": {
+                mb: 2, "& .MuiInputLabel-root": {
                   fontSize: "14px",   // Label shrift
                   top: "-7px"    // Label rangi
                 },
-                width:"80%"
+                width: "80%"
               }}
             />
 
@@ -240,7 +279,7 @@ const EditOrders = ({ open, onClose, onUpdate, initialData }) => {
               color="error"
               onClick={() => handleRemoveVariant(index)}
             >
-              <Delete sx={{fontSize:"20px"}} />
+              <Delete sx={{ fontSize: "20px" }} />
             </IconButton>
           </div>
         ))}
@@ -249,17 +288,17 @@ const EditOrders = ({ open, onClose, onUpdate, initialData }) => {
           startIcon={<Add />}
           onClick={handleAddVariant}
           variant="outlined"
-          sx={{ fontSize:"12px" }}
+          sx={{ fontSize: "12px" }}
         >
           Variant qo‘shish
         </Button>
       </DialogContent>
 
       <DialogActions sx={{ mt: 2 }}>
-        <Button variant="outlined" color="error" onClick={handleClose} sx={{fontSize:"12px"}}>
+        <Button variant="outlined" color="error" onClick={handleClose} sx={{ fontSize: "12px" }}>
           Отмена
         </Button>
-        <Button onClick={handleSubmit} variant="contained"  sx={{fontSize:"12px"}}>
+        <Button onClick={handleSubmit} variant="contained" sx={{ fontSize: "12px" }}>
           Сохранить
         </Button>
       </DialogActions>

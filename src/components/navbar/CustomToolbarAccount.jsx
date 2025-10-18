@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import PropTypes from "prop-types";
 import { Avatar, Button } from "@mui/material";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
@@ -9,50 +9,13 @@ import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { deepOrange } from "@mui/material/colors";
 import { useTheme } from "@mui/material/styles";
-import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "react-toastify";
-import EditIcon from "@mui/icons-material/Edit";
-import { Stack, LinearProgress, Typography, TextField } from "@mui/material";
-import KeyIcon from "@mui/icons-material/VpnKey";
-import CheckIcon from "@mui/icons-material/Check";
-import CloseIcon from "@mui/icons-material/Close";
-import { IconButton, InputAdornment } from "@mui/material";
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 import "react-toastify/dist/ReactToastify.css";
+import { logout } from "../api/axios";
 const CustomToolbarAccount = ({ isLoggedIn, mode, toggleMode, sidebarOpen, setSidebarOpen }) => {
-  const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
-  const [previewPhoto, setPreviewPhoto] = useState(null);
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
-  const lastName = localStorage.getItem("last_name");
-  const username = localStorage.getItem("username");
-  const firstName = localStorage.getItem("first_name");
-  const photo = localStorage.getItem("photo");
-  const [first_name, setFirstName] = useState("");
-  const [last_name, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone_number, setPhoneNumber] = useState("");
-  const [selectedPhotoFile, setSelectedPhotoFile] = useState(null);
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showOldPassword, setShowOldPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const minLength = 12;
-
-
-
-
-
-
-
-
-
-
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -74,6 +37,16 @@ const CustomToolbarAccount = ({ isLoggedIn, mode, toggleMode, sidebarOpen, setSi
   }, [sidebarOpen, setSidebarOpen]);
 
 
+  const handleLogout = async () => {
+    try {
+      await logout(); // Backend logout chaqiruvi
+      // Token cookie orqali tozalanadi (agar Django view shunday qilsa)
+      navigate("/login"); // Login sahifasiga yo‘naltirish
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+  
   return (
     <>
       <div
@@ -130,7 +103,7 @@ const CustomToolbarAccount = ({ isLoggedIn, mode, toggleMode, sidebarOpen, setSi
               </Avatar>
               <span></span>
               <Button
-               
+               onClick={handleLogout}
                 color="error"
                 variant="contained"
                 sx={{ padding: "4px 10px", fontSize: "10px" }}

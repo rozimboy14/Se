@@ -136,7 +136,13 @@ console.log(item);
 
     try {
       const response = await postStockEntry(payload);
-      setStockEntry.stock_entries(prev => [...prev, ...(Array.isArray(response.data) ? response.data : [response.data])]);
+     setStockEntry(prev => ({
+  ...prev,
+  stock_entries: [
+    ...(prev.stock_entries || []),
+    ...(Array.isArray(response.data) ? response.data : [response.data]),
+  ],
+}));
     } catch (err) {
       console.error("Add failed:", err);
     } finally {

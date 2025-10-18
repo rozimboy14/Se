@@ -1,0 +1,342 @@
+.login-container {
+  position: relative;
+  margin-top: 150px;
+  width: 230px;
+  height: 310px;
+  padding: 20px 45px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.025);
+  box-shadow: 0 0 13px rgb(3, 199, 248);
+  backdrop-filter: blur(4.9px);
+  overflow: hidden;
+    animation: flickerShadow 3s infinite ease-in-out
+}
+@keyframes flickerShadow {
+  0%, 18%, 22%, 25%, 53%, 57%, 100% {
+    box-shadow: 0 0 10px rgb(3, 199, 248), 0 0 30px rgba(3, 199, 248, 0.4);
+  }
+  20%, 24%, 55% {
+    box-shadow: 0 0 4px rgba(3, 199, 248, 0.3);
+  }
+}
+
+.login-container {
+  animation: flickerShadow 2s infinite;
+}
+
+.login-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  padding: 3px;
+  background: linear-gradient(
+    90deg,
+    #00ffff,
+    #ffffff,
+    #00ffff,
+    #ffffff,
+    #00ffff
+  );
+  background-size: 300% 300%; /* <-- BU juda muhim */
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: destination-out;
+  animation: glowing 5s infinite linear;
+  z-index: -100;
+}
+
+@keyframes glowing {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+.login-link:nth-child(1) {
+  position: absolute;
+  text-decoration: underline;
+  bottom: 290px;
+  right: 160px;
+  color: rgb(59, 50, 139);
+}
+.login-link:nth-child(2) {
+  position: absolute;
+  text-decoration: underline;
+  color: rgb(59, 50, 139);
+  bottom: 260px;
+  right: 180px;
+}
+.login {
+  --radius: 120px;
+  --x: 50%;
+  --y: 50%;
+  background-image: url("/public/images/elegant-woolen-jacket-men-winter-fashion-generated-by-ai.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+
+  justify-content: center;
+  z-index: 0;
+  transition: --radius 0.3s ease; /* OPTIONAL */
+}
+
+.login::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background-color: rgba(0, 0, 0, 0.8);
+  mask-image: radial-gradient(
+    circle var(--radius, 100px) at var(--x, 50%) var(--y, 50%),
+    transparent 0%,
+    black 100%
+  );
+  -webkit-mask-image: radial-gradient(
+    circle var(--radius, 100px) at var(--x, 50%) var(--y, 50%),
+    transparent 0%,
+    black 100%
+  );
+  z-index: 2;
+  transition:
+    mask-image 0.2s ease,
+    -webkit-mask-image 0.2s ease;
+}
+.input-group {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.input-group input {
+  width: 100%;
+  height: 40px;
+  border: none;
+  border-bottom: 2px solid #fdfdfd;
+  background: transparent;
+  outline: none;
+  font-size: 16px;
+  color: #fff;
+}
+
+.input-group label {
+  position: absolute;
+  left: 0;
+  top: 8px;
+  color: #aaa;
+  pointer-events: none;
+  transition: 0.3s ease all;
+}
+
+/* Fokusda yoki qiymat bor bo‘lsa label tepaga chiqadi */
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+  top: -14px;
+  font-size: 12px;
+  color: #00bfff;
+}
+/* Autofill rangni yo‘qotish uchun */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  transition: background-color 9999s ease-in-out 0s !important;
+  -webkit-text-fill-color: #fff !important; /* matn rangi oq bo‘lsin */
+}
+
+/* Firefox uchun */
+input:-moz-autofill {
+  box-shadow: 0 0 0px 1000px transparent inset !important;
+  -moz-text-fill-color: #fff !important;
+}
+
+/* Shunchaki oldindan autofill fonni yo‘qotish */
+input {
+  background-color: transparent !important;
+  color: #fff;
+}
+.login-title {
+  font-size: 36px;
+  font-weight: bold;
+  color: #fff;
+  margin: 0;
+  letter-spacing: 2px;
+  text-shadow:
+    0 0 5px #00bfff,
+    0 0 6px #00bfff,
+    0 0 3px #00bfff;
+}
+
+/* "I" harfi uchun lampachalik effekt */
+.flicker {
+  display: inline-block;
+  color: #fff;
+  text-shadow:
+    0 0 5px #00ffff,
+    0 0 10px #00ffff,
+    0 0 15px #00ffff,
+    0 0 20px #00ffff,
+    0 0 30px #00ffff;
+  animation: flickerAnimation 2s infinite;
+}
+.flicker-o {
+  display: inline-block;
+  color: #fff;
+  text-shadow:
+    0 0 5px #00ffff,
+    0 0 10px #00ffff,
+    0 0 20px #00ffff,
+    0 0 40px #00ffff,
+    0 0 80px #00ffff;
+  animation: flicker-oAnimation 4s infinite;
+}
+
+@keyframes flickerAnimation {
+  0%,
+  19%,
+  21%,
+  23%,
+  25%,
+  54%,
+  56%,
+  100% {
+    opacity: 1;
+    text-shadow:
+      0 0 5px #00ffff,
+      0 0 10px #00ffff,
+      0 0 20px #00ffff,
+      0 0 40px #00ffff,
+      0 0 80px #00ffff;
+  }
+  20%,
+  24%,
+  55% {
+    opacity: 0.3;
+    text-shadow: none;
+  }
+}
+@keyframes flicker-oAnimation {
+  0%,
+  19%,
+  21%,
+  23%,
+  25%,
+  54%,
+  56%,
+  100% {
+    opacity: 1;
+    text-shadow:
+      0 0 5px #00ffff,
+      0 0 10px #00ffff,
+      0 0 20px #00ffff,
+      0 0 40px #00ffff,
+      0 0 80px #00ffff;
+  }
+  20%,
+  24%,
+  55% {
+    opacity: 0.3;
+    text-shadow: none;
+  }
+}
+
+.login-sewing__btn {
+  position: relative;
+  display: inline-block;
+  padding: 5px 20px;
+  color: #ffffff;
+      text-shadow:
+      0 0 5px #00ffff,
+      0 0 10px #00ffff,
+      0 0 20px #00ffff,
+      0 0 40px #00ffff;
+  background: #05eeee48;
+  border-radius: 18px;
+   box-shadow: 0 0 10px #57ffff;
+  backdrop-filter: blur(5.4px);
+  -webkit-backdrop-filter: blur(6.4px);
+  border: 2px solid transparent;
+  font-weight: 600;
+  font-size: 16px;
+  text-transform: uppercase;
+  cursor: pointer;
+  overflow: hidden;
+
+  transition:
+    color 0.3s,
+    background-color 0.3s;
+    transition: all 0.2s ease-in-out;
+}
+.login-sewing__btn:hover{
+    color: #0d333d;
+      text-shadow:
+      0 0 5px #222c2c62,
+      0 0 10px #20ccb5,
+      0 0 20px #288f8f67,
+      0 0 40px #00ffff42;
+         box-shadow: 0 0 3px #57ffff;
+}
+/* Pseudo-element border gradient uchun */
+.login-sewing__btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  padding: 3px;
+
+  background: linear-gradient(
+    90deg,
+    #00ffff,
+    #ffffff,
+    #00ffff,
+    #ffffff,
+    #00ffff
+  );
+  background-size: 300% 300%;
+  border-radius: 16px;
+
+  transition: opacity 0.3s;
+  opacity: 0;
+  animation: glowing 5s infinite linear;
+
+  mask-composite: exclude;
+  -webkit-mask-composite: destination-out;
+
+  z-index: -100;
+}
+
+/* Hover effekti */
+.login-sewing__btn:hover::before {
+  opacity: 1;
+}
+
+/* Gradient animation */
+@keyframes glowing {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+.password-group {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #00bfff;
+}

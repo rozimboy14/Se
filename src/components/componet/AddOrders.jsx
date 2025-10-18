@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { getArticle, getSpecification } from "../api/axios";
 import { Add, Delete } from "@mui/icons-material";
-
+import { debounce } from "lodash";
 const AddOrders = ({ open, onClose, onAdd }) => {
   const [form, setForm] = useState({
     specification: null,
@@ -23,24 +23,71 @@ const AddOrders = ({ open, onClose, onAdd }) => {
 
   const [articleOptions, setArticleOptions] = useState([]);
   const [specificationOptions, setSpecificationOptions] = useState([]);
+  const [searchText, setSearchText] = useState("");
+  const [searchSeason, setSearchSeason] = useState("");
+  const [loadingFetch, setLoadingFetch ] = useState(false);
+  // useEffect(() => {
+  //   if (open) {
+  //     const fetchData = async () => {
+  //       try {
+  //         const articleResponse = await getArticle({ search: text, page_size: 20 });
+  //         setArticleOptions(articleResponse.data.results);
 
-  useEffect(() => {
-    if (open) {
-      const fetchData = async () => {
-        try {
-          const articleResponse = await getArticle();
-          setArticleOptions(articleResponse.data);
+  //         const specificationgResponse = await getSpecification();
+  //         setSpecificationOptions(specificationgResponse.data);
+  //       } catch (error) {
+  //         console.error("Ошибка при загрузке категорий:", error);
+  //       }
+  //     };
 
-          const specificationgResponse = await getSpecification();
-          setSpecificationOptions(specificationgResponse.data);
-        } catch (error) {
-          console.error("Ошибка при загрузке категорий:", error);
-        }
-      };
+  //     fetchData();
+  //   }
+  // }, [open]);
 
-      fetchData();
+
+useEffect(() => {
+  if (open) {
+    const fetchInitial = async () => {
+      const [articleRes, specRes] = await Promise.all([
+        getArticle({ page_size: 20 }),
+        getSpecification({ page_size: 20 }),
+      ]);
+      setArticleOptions(articleRes.data.results);
+      setSpecificationOptions(specRes.data.results);
+    };
+    fetchInitial();
+  }
+}, [open]);
+
+
+
+
+
+const createDebouncedFetch = (apiFunc, setOptions, setLoading) =>
+  debounce(async (text) => {
+    setLoading(true);
+    try {
+      const response = await apiFunc({ search: text, page_size: 20 });
+      setOptions(response.data.results);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-  }, [open]);
+  }, 300);
+
+const debouncedFetchArticle = createDebouncedFetch(getArticle, setArticleOptions, setLoadingFetch);
+const debouncedFetchSpecification = createDebouncedFetch(getSpecification, setSpecificationOptions, setLoadingFetch);
+
+useEffect(() => {
+  if (open) debouncedFetchArticle(searchText);
+  return () => debouncedFetchArticle.cancel();
+}, [searchText, open]);
+
+useEffect(() => {
+  if (open) debouncedFetchSpecification(searchSeason);
+  return () => debouncedFetchSpecification.cancel();
+}, [searchSeason, open]);
 
   // 🔹 Variant qo‘shish
   const handleAddVariant = () => {
@@ -114,6 +161,7 @@ const AddOrders = ({ open, onClose, onAdd }) => {
           options={specificationOptions}
           getOptionLabel={(option) => option.name || ""}
           value={form.specification}
+          onInputChange={(event, value) => setSearchSeason(value)} 
           onChange={(e, value) => setForm({ ...form, specification: value })}
           renderInput={(params) => (
             <TextField {...params} label="Сезон"  InputProps={{
@@ -138,6 +186,7 @@ const AddOrders = ({ open, onClose, onAdd }) => {
           options={articleOptions}
           getOptionLabel={(option) => option.full_name || ""}
           value={form.article}
+onInputChange={(event, value) => setSearchText(value)} 
           onChange={(e, value) => setForm({ ...form, article: value })}
           renderInput={(params) => (
             <TextField {...params} label="Модель" InputProps={{
@@ -162,6 +211,7 @@ const AddOrders = ({ open, onClose, onAdd }) => {
           label="Примичения"
           value={form.comment}
           onChange={handleChange("comment")}
+          
           variant="outlined"
          InputProps={{
                 sx: {

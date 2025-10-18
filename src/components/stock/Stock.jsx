@@ -32,14 +32,22 @@ function Stock() {
   const [warehouse, setWarehouse] = useState([])
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    if (warehouse && !value) {
+useEffect(() => {
+  // warehouse massiv va length > 0 bo'lishini tekshiramiz
+  if (warehouse.length > 0 && !value) {
+    const firstWarehouseId = warehouse[0]?.id; // optional chaining bilan xavfsiz
+    if (firstWarehouseId !== undefined) {
       console.log("📦 Warehouses loaded:", warehouse);
-      console.log("⚠️ value bo‘sh edi, default qilib birinchi ombor:", warehouse[0].id);
-      setValue(warehouse.id);
-      localStorage.setItem("selectedWarehouse", warehouse[0].id);
+      console.log("⚠️ value bo‘sh edi, default qilib birinchi ombor:", firstWarehouseId);
+      setValue(firstWarehouseId);
+      localStorage.setItem("selectedWarehouse", firstWarehouseId);
+      
+      // agar warehouse name ham saqlash kerak bo‘lsa
+      setWarehouseName(warehouse[0]?.name || null);
+      localStorage.setItem("selectedWarehouseName", warehouse[0]?.name || '');
     }
-  }, [warehouse, value]);
+  }
+}, [warehouse, value]);
 
 
   useEffect(() => {

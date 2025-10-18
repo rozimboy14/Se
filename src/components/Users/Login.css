@@ -1,0 +1,256 @@
+.svg-form-wrapper {
+  position: relative;
+  width: 300px; /* SVG va form kengligi */
+  height: 300px; /* SVG va form balandligi */
+  margin: 0 auto;
+}
+
+.svg-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: #eb6a6a;
+}
+
+.motion-form {
+  position: absolute;
+  /* SVG o‘rtasiga joylash */
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%; /* Form kengligi */
+  background-color: rgba(187, 14, 14, 0.9);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.motion-form input {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.motion-form button {
+  padding: 10px;
+  font-size: 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.motion-form button:hover {
+  background-color: #0056b3;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  width: 100%;
+  height: 100%;
+}
+
+.login-input:nth-child(2) {
+  position: absolute;
+  top: 270px;
+  width: 170px;
+  right:110px;
+}
+.login-input:nth-child(1) {
+  position: absolute;
+  top: 200px;
+  width: 170px;
+  right:110px;
+}
+.login-container {
+  position: relative;
+
+  width: 600px;
+  height: 720px;
+  z-index: 3; /* Bu orqali form yuqorida qoladi */
+  background-color: rgba(255, 255, 255, 0.295); /* biroz shaffof bo‘lsa, qorayish ko‘rinadi */
+
+  right: 0px;
+
+  align-items: center;
+
+  outline-offset: -4px;
+}
+
+.login-input input {
+  margin-top: 6px;
+  background-color: #fff;
+  padding: 3px;
+  height: 35px;
+  width: 100%;
+  border-radius: 6px;
+  border: none;
+  -webkit-box-shadow: 7px 1px 8px 0px rgba(34, 60, 80, 0.2);
+  -moz-box-shadow: 7px 1px 8px 0px rgba(34, 60, 80, 0.2);
+  box-shadow: 7px 1px 8px 0px rgba(34, 60, 80, 0.2);
+}
+.login-input label {
+  font-size: 12px;
+}
+.login-btn {
+  background-image: linear-gradient(to right bottom, #94b1de, #00c9f8, #00dfdf, #00ec93, #a8eb12);
+  color: white;
+  position: absolute;
+  top: 360px;
+  right: 130px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 6px;
+  -webkit-box-shadow: 7px 1px 8px 0px rgba(34, 60, 80, 0.2);
+  -moz-box-shadow: 7px 1px 8px 0px rgba(34, 60, 80, 0.2);
+  box-shadow: 7px 1px 8px 0px rgba(34, 60, 80, 0.2);
+  padding: 6px 50px;
+}
+.box {
+  position: absolute;
+  width: 220px;
+  height: 150px;
+  bottom: 30px;
+  left: 100px;
+  border-radius: 60%;
+  border: 1px solid red;
+  background: #4683c4;
+  transform: rotate(40deg); /* to‘g‘ri yozilishi */
+}
+.box1 {
+  position: absolute;
+  width: 130px;
+  height: 160px;
+  bottom: 200px;
+  right: -10px;
+  border-radius: 60%;
+  border: 1px solid red;
+  background: #4683c4;
+  transform: rotate(40deg); /* to‘g‘ri yozilishi */
+}
+.box2 {
+  width: 300px;
+  height: 4px;
+  background: #4683c4;
+  position: absolute;
+  top: 177px;
+  right: 80px;
+}
+/* .login-title {
+  position: absolute;
+  top: 130px;
+  right: 160px;
+  font-weight: bold;
+  background: linear-gradient(
+    90deg,
+    rgb(14, 209, 102) 0%,
+    rgba(72, 174, 140, 1) 23%,
+    rgb(10, 180, 92) 57%,
+    rgb(4, 223, 88) 83%,
+    rgb(8, 209, 182) 100%,
+    rgb(8, 206, 156) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+} */
+.border-animate {
+  position: absolute;
+
+  background: linear-gradient(270deg, #ff0080, #2869ca, #2afadf, #121313, #06d3d3);
+  background-size: 1600% 1600%;
+  animation: borderIdle 10s linear infinite;
+  transition: all 0.1s ease;
+  z-index: -1;
+  opacity: 0.9; /* biroz ko'proq ko'rinadigan qilamiz */
+  border: 2px solid white; /* test uchun border qo'shildi */
+  filter: blur(10px); /* chiroyli effekt berish uchun */
+  pointer-events: none;
+}
+
+.border-animate.submitted {
+  animation: borderActive 2s linear infinite;
+  opacity: 1;
+  filter: brightness(1.4) contrast(1.3);
+}
+
+@keyframes borderIdle {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes borderActive {
+  0% {
+    background-position: 0% 0%;
+  }
+  25% {
+    background-position: 60% 50%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  75% {
+    background-position: 50% 50%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+.login-link:nth-child(1) {
+  position: absolute;
+  text-decoration: underline;
+  bottom: 290px;
+  right: 160px;
+  color: rgb(59, 50, 139);
+}
+.login-link:nth-child(2) {
+  position: absolute;
+  text-decoration: underline;
+  color: rgb(59, 50, 139);
+  bottom: 260px;
+  right: 180px;
+}
+.login {
+  --radius: 120px;
+  --x: 50%;
+  --y: 50%;
+  background-image: url("/public/images/elegant-woolen-jacket-men-winter-fashion-generated-by-ai.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  z-index: 0;
+  transition: --radius 0.3s ease; /* OPTIONAL */
+   cursor: url('/public/images/flashlight.png'), auto;
+}
+
+.login::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background-color: rgba(0, 0, 0, 0.8);
+  mask-image: radial-gradient(circle var(--radius, 100px) at var(--x, 50%) var(--y, 50%), transparent 0%, black 100%);
+  -webkit-mask-image: radial-gradient(circle var(--radius, 100px) at var(--x, 50%) var(--y, 50%), transparent 0%, black 100%);
+  z-index: 2;
+  transition: mask-image 0.2s ease, -webkit-mask-image 0.2s ease;
+}

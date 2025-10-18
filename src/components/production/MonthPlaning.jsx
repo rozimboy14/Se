@@ -258,8 +258,8 @@ function MonthPlaning() {
                                         {item.month_display}
                                     </TableCell>
                                     <TableCell sx={{ textAlign: "center", fontSize: "12px", padding: "2px 10px" }}>{formatNumber(item.day_planing)}</TableCell>
-                                    <TableCell sx={{ textAlign: "center", fontSize: "12px", padding: "2px 10px" }}>{formatNumber(item.day)}</TableCell>
-                                    <TableCell sx={{ textAlign: "center", fontSize: "12px", padding: "2px 10px" }}>{formatNumber(item.total_quantity)}</TableCell>
+                                    <TableCell sx={{ textAlign: "center", fontSize: "12px", padding: "2px 10px" }}>{formatNumber(item.planing_quantity)}</TableCell>
+                                    <TableCell sx={{ textAlign: "center", fontSize: "12px", padding: "2px 10px" }}>{formatNumber(item.fact_quantity)}</TableCell>
                                     <TableCell sx={{ textAlign: "center", padding: "2px 10px", width: "150px" }}>
                                         <Box sx={{ position: "relative", display: "flex", alignItems: "center" }}>
                                             <LinearProgress

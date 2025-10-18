@@ -8,9 +8,64 @@ const api = axios.create({
   },
 });
 
+const refreshApi=axios.create({
+  baseURL:BASE_URL,
+  withCredentials:true,
+})
+
+function handleLogout(){
+  localStorage.clear();
+  sessionStorage.clear();
+  document.cookie="access_token=; Max-Age=0; path=/;"
+  document.cookie="refresh_token=; Max-Age=0; path=/;"
+  window.location.replace("/login")
+}
+
+api.interceptors.response.use(
+  (response)=>response,
+  async(error)=>{
+    const originalRequest = error.config;
+    if (!originalRequest ||!error.response){
+      return Promise.reject(error);
+
+    }
+    const isRefreshURL = originalRequest.url.includes("/users/refresh/")
+    if (error.response?.status ===401 && !originalRequest._retry && !isRefreshURL){
+      originalRequest._retry=true
+      try{
+        const refreshResponse = await refreshApi.post("/users/refresh/")
+          console.log("✅ Token yangilandi:", refreshResponse.data.access);
+        return api(originalRequest)
+        
+
+      }
+      catch (refreshError){
+             console.error("❌ Refresh token ishlamadi:", refreshError);
+             handleLogout();
+             return Promise.reject(refreshError)
+      }
+    }
+    return Promise.reject(error)
+  }
+);
+
+//ANCHOR - Users
+export const login = (data) => {
+  return api.post(`/users/login/`, data);
+};
+export const logout = () => {
+  return api.post("/users/logout/", {}, { withCredentials: true });
+};
+
+
+
+
+
 //ANCHOR Sewing
 
-export const getBrand = () => api.get(`/sewing/brand/`);
+export const getBrand = (params = {}) => {
+  return api.get(`/sewing/brand/`, { params });
+};
 
 export const postBrand = (data) =>
   api.post(`/sewing/brand/`, data, {
@@ -27,9 +82,9 @@ export const patchBrand = (id, data) =>
   });
 export const deleteBrand = (id) => api.delete(`/sewing/brand/${id}/`);
 
-export const getSpecification = () => api.get(`/sewing/specification/`);
+export const getSpecification = (params = {}) => api.get(`/sewing/specification/`,{ params });
 
-export const getAccessory = () => api.get(`/sewing/accessory/`);
+export const getAccessory = (params={}) => api.get(`/sewing/accessory/`,{ params });
 
 export const postAccessory = (data) =>
   api.post(`/sewing/accessory/`, data, {
@@ -78,7 +133,7 @@ export const deleteSewinggCategory = (id) =>
   api.delete(`sewing/sewing_category/${id}/`);
 
 // Article
-export const getArticle = () => api.get(`/sewing/article`);
+export const getArticle = (params={}) => api.get(`/sewing/article`,{params});
 export const postArticle = (data) =>
   api.post(`/sewing/article/`, data, {
     headers: {
@@ -96,7 +151,7 @@ export const patchArticle = (id, data) =>
 export const deleteArticle = (id) => api.delete(`/sewing/article/${id}/`);
 
 // Order
-export const getOrders = () => api.get(`/sewing/order/`);
+export const getOrders = (params={}) => api.get(`/sewing/order/`,{params});
 
 export const postOrder = (data) => api.post(`sewing/order/`, data);
 
@@ -344,5 +399,12 @@ export const getStockPackaBrandgeExportPdf = (warehouseId,branId) =>
   api.get(`/packaging/packaging-stock/export-brand-pdf/?warehouse_id=${warehouseId}&brand_id=${branId}`, {
     responseType: "blob",
   });
+
+
+export const getChartProductionReportDaily = (warehouseId,year,month) =>
+  api.get(`/production/chart-production-report-daily/?warehouse=${warehouseId}&year=${year}&month=${month}`, 
+  );
+
+
 
 export default api;

@@ -247,16 +247,16 @@ const DailyLineProduction = ({ lineId, reportId, onBack }) => {
     };
 
 
-useEffect(() => {
-    if (errorMessage.length > 0) {
-        const container = document.getElementById("scroll-container");
-        container?.scrollTo({ top: 0, behavior: "smooth" });
-    }
-}, [errorMessage]);
+    useEffect(() => {
+        if (errorMessage.length > 0) {
+            const container = document.getElementById("scroll-container");
+            container?.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    }, [errorMessage]);
 
-const handleCloseAlert = (index) => {
-  setErrorMessage(prev => prev.filter((_, i) => i !== index));
-};
+    const handleCloseAlert = (index) => {
+        setErrorMessage(prev => prev.filter((_, i) => i !== index));
+    };
 
     return (
         <Box sx={{ p: 0 }}>
@@ -264,31 +264,31 @@ const handleCloseAlert = (index) => {
                 <Button onClick={onBack} sx={{ mb: 0.2, fontSize: "10px", padding: 0.2 }} variant="contained">Назад</Button>
                 <h3 style={{ margin: 0, flex: 1, }}>{productionNorm.date}</h3>
             </Box>
-<Snackbar
-  open={!!errorMessage && (Array.isArray(errorMessage) ? errorMessage.length > 0 : true)}
-  autoHideDuration={6000}
-  onClose={() => setErrorMessage([])}
-  anchorOrigin={{ vertical: "top", horizontal: "center" }}
->
-  <Box>
-    {Array.isArray(errorMessage) ? (
-      errorMessage.map((item, index) => (
-        <Alert
-          key={index}
-            onClose={() => handleCloseAlert(index)}
-          severity="error"
-          sx={{ width: '100%', mb: 1 }}
-        >
-          {item}
-        </Alert>
-      ))
-    ) : (
-      <Alert onClose={() => setErrorMessage([])} severity="error" sx={{ width: '100%' }}>
-        {errorMessage}
-      </Alert>
-    )}
-  </Box>
-</Snackbar>
+            <Snackbar
+                open={!!errorMessage && (Array.isArray(errorMessage) ? errorMessage.length > 0 : true)}
+                autoHideDuration={6000}
+                onClose={() => setErrorMessage([])}
+                anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            >
+                <Box>
+                    {Array.isArray(errorMessage) ? (
+                        errorMessage.map((item, index) => (
+                            <Alert
+                                key={index}
+                                onClose={() => handleCloseAlert(index)}
+                                severity="error"
+                                sx={{ width: '100%', mb: 1 }}
+                            >
+                                {item}
+                            </Alert>
+                        ))
+                    ) : (
+                        <Alert onClose={() => setErrorMessage([])} severity="error" sx={{ width: '100%' }}>
+                            {errorMessage}
+                        </Alert>
+                    )}
+                </Box>
+            </Snackbar>
 
 
             {productionNorm.lines.map((line, idx) => (
@@ -373,7 +373,7 @@ const handleCloseAlert = (index) => {
                                                     <TextField
                                                         size="small"
                                                         type="number"
-                                                        value={formData[order.id]?.sort_1 || 0}
+                                                        value={formData[order.id]?.sort_1}
                                                         onChange={(e) => handleChange(order.id, 'sort_1', e.target.value)}
                                                         InputProps={commonInputProps}
                                                         sx={commonTextFieldSx}
@@ -387,7 +387,7 @@ const handleCloseAlert = (index) => {
                                                     <TextField
                                                         size="small"
                                                         type="number"
-                                                        value={formData[order.id]?.sort_2 || 0}
+                                                        value={formData[order.id]?.sort_2}
                                                         onChange={(e) => handleChange(order.id, 'sort_2', e.target.value)}
                                                         InputProps={commonInputProps}
                                                         sx={commonTextFieldSx}
@@ -401,7 +401,7 @@ const handleCloseAlert = (index) => {
                                                     <TextField
                                                         size="small"
                                                         type="number"
-                                                        value={formData[order.id]?.defect_quantity || 0}
+                                                        value={formData[order.id]?.defect_quantity}
                                                         onChange={(e) => handleChange(order.id, 'defect_quantity', e.target.value)}
                                                         InputProps={commonInputProps}
                                                         sx={commonTextFieldSx}

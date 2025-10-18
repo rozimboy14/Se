@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useCallback  } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -10,7 +10,7 @@ import {
   Box
 } from "@mui/material";
 import { getAccessory, getBrand, getPackagingCategory, getSewinggCategory } from "../api/axios";
-
+import { debounce } from "lodash";
 const EditArticle = ({ open, onClose, onUpdate, initialData }) => {
   const [form, setForm] = useState({
     name: "",
@@ -26,20 +26,22 @@ const EditArticle = ({ open, onClose, onUpdate, initialData }) => {
   const [packagingOptions, setPackagingOptions] = useState([]);
   const [brandOptions, setBrandOptions] = useState([]);
   const [accessoryOptions, setAccessoryOptions] = useState([]);
-
+  const [searchText, setSearchText] = useState("");
+  const [loadingFetch, setLoadingFetch] = useState(false);
+  const [inputBrandText, setInputBrandText] = useState("");
   // Kategoriyalarni yuklash
   useEffect(() => {
     if (open) {
       const fetchData = async () => {
         try {
-          const [packRes, brandRes, sewRes, accessoryRes] = await Promise.all([
+          const [packRes, sewRes, accessoryRes] = await Promise.all([
             getPackagingCategory(),
-            getBrand(),
+
             getSewinggCategory(),
             getAccessory(),
           ]);
           setPackagingOptions(packRes.data);
-          setBrandOptions(brandRes.data);
+
           setSewingOptions(sewRes.data);
           setAccessoryOptions(accessoryRes.data);
         } catch (error) {
@@ -49,16 +51,17 @@ const EditArticle = ({ open, onClose, onUpdate, initialData }) => {
       fetchData();
     }
   }, [open]);
+useEffect(() => {
+  if (initialData && open && brandOptions.length) {
+    const brand = brandOptions.find((b) => b.id === initialData.brand) || null;
+    setForm((prev) => ({ ...prev, brand }));
+    setInputBrandText(brand?.name || "");
+  }
+}, [initialData, brandOptions, open]);
 
   // initialData + options kelganda formni set qilish
   useEffect(() => {
-    if (
-      initialData &&
-      brandOptions.length &&
-      sewingOptions.length &&
-      packagingOptions.length &&
-      accessoryOptions.length
-    ) {
+ if (initialData && open)  {
       setForm({
         name: initialData.name || "",
         article: initialData.article || "",
@@ -87,9 +90,30 @@ const EditArticle = ({ open, onClose, onUpdate, initialData }) => {
     accessoryOptions,
   ]);
 
+
+  const debouncedFetch = debounce(async (text, setBrand, setLoadingFetch) => {
+    setLoadingFetch(true);
+    try {
+      const response = await getBrand({ search: text, page_size: 20 });
+      setBrandOptions(response.data.results);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingFetch(false);
+    }
+  }, 300); // 300ms delay
+
+useEffect(() => {
+  if (searchText !== form.brand?.name) { // tanlangan optionni yozib yubormaslik
+    debouncedFetch(searchText, setBrandOptions, setLoadingFetch);
+  }
+}, [searchText]);
+
   const handleChange = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
   };
+
+
 
   const handleAccessoryChange = (index, field, value) => {
     const newAccessories = [...form.accessories];
@@ -109,7 +133,7 @@ const EditArticle = ({ open, onClose, onUpdate, initialData }) => {
     setForm({ ...form, accessories: newAccessories });
   };
 
-  // 📌 SUBMIT
+
   const handleSubmit = () => {
     if (form.name.trim() && form.article.trim()) {
       const formData = new FormData();
@@ -123,7 +147,7 @@ const EditArticle = ({ open, onClose, onUpdate, initialData }) => {
         formData.append("image", form.image);
       }
 
-      // 🔹 faqat id va quantity yuboramiz
+
       const accessoriesData = form.accessories.map((a) => ({
         accessory: a.accessory?.id || "",
         quantity: a.quantity,
@@ -211,7 +235,17 @@ const EditArticle = ({ open, onClose, onUpdate, initialData }) => {
             <Autocomplete
               options={brandOptions}
               value={form.brand}
-              onChange={(e, value) => setForm({ ...form, brand: value })}
+                onChange={(e, newValue) => {
+    setForm({ ...form, brand: newValue });
+    setInputBrandText(newValue?.name || "");
+  }}
+  inputValue={inputBrandText}
+                onInputChange={(e, newInputValue, reason) => {
+    if (reason === "input") {
+      setInputBrandText(newInputValue);
+      debouncedFetch(newInputValue, setBrandOptions, setLoadingFetch);
+    }
+  }}
               getOptionLabel={(option) => option.name || ""}
               renderInput={(params) => (
                 <TextField
@@ -310,14 +344,14 @@ const EditArticle = ({ open, onClose, onUpdate, initialData }) => {
                 <TextField {...params} label="Швейная категория" InputProps={{
                   ...params.InputProps,
                   sx: {
-                    height: 35,     
-                    fontSize: 14   
+                    height: 35,
+                    fontSize: 14
                   }
                 }}
                   sx={{
                     "& .MuiInputLabel-root": {
-                      fontSize: "14px",   
-                      top: "-7px"   
+                      fontSize: "14px",
+                      top: "-7px"
                     },
                   }} />
               )}
