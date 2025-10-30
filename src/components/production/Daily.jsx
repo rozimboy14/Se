@@ -100,8 +100,8 @@ function Daily() {
   const [showFirst, setShowFirst] = useState(true);
   const [leftView, setLeftView] = useState("DailyProduction");
   const [selectedDaily, setSelectedDaily] = useState(null)
-  const[productionReport,setProductionReport] =useState({})
-  const[dailyReport,setDailyReport]=useState([])
+  const [productionReport, setProductionReport] = useState({})
+  const [dailyReport, setDailyReport] = useState([])
   // const specification = searchParams.get("spec");
 
   const monthNames = [
@@ -160,16 +160,16 @@ function Daily() {
   };
 
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchProduction = async () => {
       setLoadingFetch(true);
       try {
-        
+
         const res = await getProductionReportId(reportId);
         setProductionReport(res.data);
         setProductionNorm(res.data.production_norm);
         setDailyReport(res.data.daily_report);
-        console.log("productionreport",res.data);
+        console.log("productionreport", res.data);
       } catch (err) {
         console.error(err);
       } finally {
@@ -184,8 +184,8 @@ function Daily() {
     const fetchOrders = async () => {
       setLoadingFetch(true);
       try {
-        const response = await getOrders();
-        setOrders(response.data);
+        const response = await getOrders({ page_size: 600 });
+        setOrders(response.data.results);
         console.log(response.data);
       } catch (error) {
         console.log(error);
@@ -273,11 +273,14 @@ function Daily() {
     }
   };
   const handleEditLineNorm = async (row) => {
-    const payload = {
-      order: row.order?.id,
-      order_variant: row.variant?.id,
-      norm: Number(row.norm),
-    };
+    console.log("handleEditLineNorm-ROW",row);
+
+const payload = {
+  order: row.order_detail?.id ?? row.order?.id, // row.order_detail bo‘lsa undan, aks holda row.order
+  order_variant: row.order_variant ?? row.variant?.id, // variant id ni olamiz
+  norm: Number(row.norm),
+};
+    console.log("handleEditLineNorm-PAYLOAD",payload)
 
     try {
       const { data } = await patchCategoryNorm(editingRow.rowId, payload);
@@ -295,20 +298,21 @@ function Daily() {
         order_name: orderObj?.full_name,
       };
 
-      setProductionNorm((prev) =>
-        prev.map((line) =>
-          line.id !== editingRow.lineId
-            ? line
-            : {
-              ...line,
-              norm_category: line.norm_category.map((cat) =>
-                cat.id === editingRow.rowId ? updatedRow : cat
-              ),
-            }
-        )
-      );
-
-      handleCloseEdit();
+setProductionNorm(prev =>
+  prev.map(line =>
+    line.id !== editingRow.lineId
+      ? line
+      : {
+          ...line,
+          norm_category: line.norm_category.map(cat =>
+            cat.id === editingRow.rowId ? updatedRow : cat
+          ),
+        }
+  )
+);
+// handleCloseEdit faqat cancel bo‘lganda chaqiriladi
+setEditingRow({});
+setOriginalRow(null);
     } catch (err) {
       if (err.response && err.response.data) {
         // DRF validation xabari
@@ -326,57 +330,57 @@ function Daily() {
       <h2 style={{ textAlign: "center", margin: "0", marginBottom: "5px" }}>{daily}-{year}</h2>
       {/* Chap tomonda jadval */}
       <Box sx={{ display: "flex", width: "100%", gap: 2 }}>
-    <Box sx={{ display: "flex", flexDirection: "column", width: "50%" }}>
-  <AnimatePresence mode="wait">
-    {leftView === "DailyProduction" && (
-      <MotionBox
-        key="DailyProduction"
-        initial={{ x: 100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        exit={{ x: -100, opacity: 0 }}
-        transition={{ duration: 0.2 }}
-      >
-        {loadingFetch ? (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "700px",
-            }}
-          >
-            <CircularProgress />
-          </Box>
-        ) : (
-          <DailyProduction
-            onPreview={(item) => {
-              setSelectedDaily(item);
-              setLeftView("DailyLineProduction");
-            }}
-            dailyReport={dailyReport}
-          />
-        )}
-      </MotionBox>
-    )}
+        <Box sx={{ display: "flex", flexDirection: "column", width: "50%" }}>
+          <AnimatePresence mode="wait">
+            {leftView === "DailyProduction" && (
+              <MotionBox
+                key="DailyProduction"
+                initial={{ x: 100, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -100, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                {loadingFetch ? (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      height: "700px",
+                    }}
+                  >
+                    <CircularProgress />
+                  </Box>
+                ) : (
+                  <DailyProduction
+                    onPreview={(item) => {
+                      setSelectedDaily(item);
+                      setLeftView("DailyLineProduction");
+                    }}
+                    dailyReport={dailyReport}
+                  />
+                )}
+              </MotionBox>
+            )}
 
-    {leftView === "DailyLineProduction" && (
-      <MotionBox
-        key="DailyLineProduction"
-        initial={{ x: 100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        exit={{ x: -100, opacity: 0 }}
-        transition={{ duration: 0.2 }}
-      >
-        
-        <DailyLineProduction
-          reportId={reportId}
-          lineId={selectedDaily}
-          onBack={handleBack}
-        />
-      </MotionBox>
-    )}
-  </AnimatePresence>
-</Box>
+            {leftView === "DailyLineProduction" && (
+              <MotionBox
+                key="DailyLineProduction"
+                initial={{ x: 100, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -100, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+
+                <DailyLineProduction
+                  reportId={reportId}
+                  lineId={selectedDaily}
+                  onBack={handleBack}
+                />
+              </MotionBox>
+            )}
+          </AnimatePresence>
+        </Box>
 
         <Snackbar
           open={!!errorMessage}
@@ -413,372 +417,373 @@ function Daily() {
               <Button size="small" sx={{ fontSize: "10px", position: "absolute", right: "0", top: "-4px" }} variant="contained" onClick={() => setAddModalNormOpen(true)}>
                 Добавить линия
               </Button>
-      {loadingFetch ? (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "200px",
-            }}
-          >
-            <CircularProgress />
-          </Box>
-        ) : (
-              productionNorm?.map((item, idx) => (
-                
+              {loadingFetch ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "200px",
+                  }}
+                >
+                  <CircularProgress />
+                </Box>
+              ) : (
+                productionNorm?.map((item, idx) => (
 
-                <React.Fragment key={`line-${item.id}-${idx}`}>
-                  {idx > 0 && (
-                    <>
-                      <Divider sx={{ my: 0.5 }} />
-                    </>
-                  )}
-    
-                  <Accordion
-                    expanded={expanded === `panel${idx}`}
-                    onChange={handleChange(`panel${idx}`)}
-                  >
-                    <AccordionSummary
-                      expandIcon={<ExpandMoreIcon />}
-                      sx={{
-                        backgroundColor: isDark
-                          ? (expanded === `panel${idx}` ? '#4b749f' : '##223545')  // dark mode ranglari
-                          : (expanded === `panel${idx}` ? '#b9dfee' : '#eef2f3'),  // light mode ranglari
 
-                        '&:hover': { backgroundColor: isDark ? "#557c93" : "#c3e1fc", },
-                        padding: "4px 4px",       // yuqori/past kichikroq
-                        minHeight: "20px",            // default 48px → kichraytirildi
-                        "& .MuiAccordionSummary-content": {
-                          margin: 0,              // ichki content bo‘shlig‘ini olib tashlash
-                        }
-                      }}
+                  <React.Fragment key={`line-${item.id}-${idx}`}>
+                    {idx > 0 && (
+                      <>
+                        <Divider sx={{ my: 0.5 }} />
+                      </>
+                    )}
+
+                    <Accordion
+                      expanded={expanded === `panel${idx}`}
+                      onChange={handleChange(`panel${idx}`)}
                     >
-                      <Typography sx={{
-                        flex: 1, fontWeight: 500, fontSize: "14px", color: isDark
-                          ? (expanded === `panel${idx}` ? "#00ff87" : "#11d3f3") // dark mode ranglari
-                          : (expanded === `panel${idx}` ? "#D70F20" : "#3C60AD")
-                      }}>
-                        {item.line_name}
-                      </Typography>
+                      <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
+                        sx={{
+                          backgroundColor: isDark
+                            ? (expanded === `panel${idx}` ? '#4b749f' : '##223545')  // dark mode ranglari
+                            : (expanded === `panel${idx}` ? '#b9dfee' : '#eef2f3'),  // light mode ranglari
 
-                      <Typography sx={{ flex: 1, color: 'text.secondary', fontSize: "14px" }}>
-                        Общ.План: <strong>{formatNumber(item.total_norm)}</strong>
+                          '&:hover': { backgroundColor: isDark ? "#557c93" : "#c3e1fc", },
+                          padding: "4px 4px",       // yuqori/past kichikroq
+                          minHeight: "20px",            // default 48px → kichraytirildi
+                          "& .MuiAccordionSummary-content": {
+                            margin: 0,              // ichki content bo‘shlig‘ini olib tashlash
+                          }
+                        }}
+                      >
+                        <Typography sx={{
+                          flex: 1, fontWeight: 500, fontSize: "14px", color: isDark
+                            ? (expanded === `panel${idx}` ? "#00ff87" : "#11d3f3") // dark mode ranglari
+                            : (expanded === `panel${idx}` ? "#D70F20" : "#3C60AD")
+                        }}>
+                          {item.line_name}
+                        </Typography>
 
-                      </Typography>
-                      <Typography sx={{ color: 'text.secondary', mr: 10, fontSize: "14px" }}>
-                        1-Sort: <strong>{formatNumber(item.total_sort_1)}</strong>
+                        <Typography sx={{ flex: 1, color: 'text.secondary', fontSize: "14px" }}>
+                          Общ.План: <strong>{formatNumber(item.total_norm)}</strong>
 
-                      </Typography>
-                      <Typography sx={{ color: 'text.secondary', mr: 10, fontSize: "14px" }}>
-                        2-Sort: <strong>{formatNumber(item.total_sort_2)}</strong>
+                        </Typography>
+                        <Typography sx={{ color: 'text.secondary', mr: 10, fontSize: "14px" }}>
+                          1-Sort: <strong>{formatNumber(item.total_sort_1)}</strong>
 
-                      </Typography>
-                      <Typography sx={{ color: 'text.secondary', mr: 5, fontSize: "14px" }}>
-                        Brak: <strong>{formatNumber(item.total_defect)}</strong>
+                        </Typography>
+                        <Typography sx={{ color: 'text.secondary', mr: 10, fontSize: "14px" }}>
+                          2-Sort: <strong>{formatNumber(item.total_sort_2)}</strong>
 
-                      </Typography>
-                    </AccordionSummary>
-                    <AccordionDetails sx={{ padding: "10px", backgroundColor: isDark ? "#243740" : "white", }}>
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell sx={{ width: "40%", fontSize: "12px", padding: "5px 10px" }}>Model nomi</TableCell>
-                            <TableCell sx={{ width: "10%", fontSize: "12px", padding: "5px 10px" }}>variant nomi</TableCell>
-                            <TableCell sx={{ width: "10%", fontSize: "12px", padding: "5px 10px" }}>Reja</TableCell>
-                            <TableCell sx={{ textAlign: "right", width: "10%", fontSize: "12px", padding: "5px 10px" }}>1-sort</TableCell>
-                            <TableCell sx={{ textAlign: "right", width: "10%", fontSize: "12px", padding: "5px 10px" }}>2-sort</TableCell>
-                            <TableCell sx={{ textAlign: "right", width: "5%", fontSize: "12px", padding: "5px 10px" }}>Brak</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {item.norm_category?.map((detail) => {
-                            const isEditing =
-                              editingRow.lineId === item.id && editingRow.rowId === detail.id;
+                        </Typography>
+                        <Typography sx={{ color: 'text.secondary', mr: 5, fontSize: "14px" }}>
+                          Brak: <strong>{formatNumber(item.total_defect)}</strong>
 
-                            return (
-                              <TableRow
-                                key={detail.id}
-                                onDoubleClick={() => handleDoubleClick(item.id, detail.id)}
-                                sx={{ cursor: "pointer" }}
-                              >
-                                {/* Model nomi */}
-                                <TableCell sx={{ fontSize: "12px", padding: "2px 4px" }}>
-                                  {isEditing ? (
-                                    <Autocomplete
-                                      isOptionEqualToValue={(option, value) => option.id === value.id}
-                                      options={orders}
-                                      getOptionLabel={(option) => option.full_name || ""}
-                                      value={detail.order_detail || null}
-                                      onChange={(e, newValue) => {
-                                        setProductionNorm((prev) =>
-                                          prev.map((line) =>
-                                            line.id === item.id
-                                              ? {
-                                                ...line,
-                                                norm_category: line.norm_category?.map((cat) =>
-                                                  cat.id === detail.id
-                                                    ? { ...cat, order_detail: newValue, order_variant: null }
-                                                    : cat
-                                                ),
-                                              }
-                                              : line
-                                          )
-                                        );
-                                      }}
-                                      renderInput={(params) => (
-                                        <TextField
-                                          {...params}
-                                          size="small"
-                                          label="Model tanlang"
-                                          variant="standard"
-                                          InputProps={{ ...params.InputProps, ...commonInputProps }}
-                                          sx={commonTextFieldSx}
-                                        />
-                                      )}
-                                    />
-                                  ) : (
-                                    detail.order_name
-                                  )}
-                                </TableCell>
+                        </Typography>
+                      </AccordionSummary>
+                      <AccordionDetails sx={{ padding: "10px", backgroundColor: isDark ? "#243740" : "white", }}>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell sx={{ width: "40%", fontSize: "12px", padding: "5px 10px" }}>Model nomi</TableCell>
+                              <TableCell sx={{ width: "10%", fontSize: "12px", padding: "5px 10px" }}>variant nomi</TableCell>
+                              <TableCell sx={{ width: "10%", fontSize: "12px", padding: "5px 10px" }}>Reja</TableCell>
+                              <TableCell sx={{ textAlign: "right", width: "10%", fontSize: "12px", padding: "5px 10px" }}>1-sort</TableCell>
+                              <TableCell sx={{ textAlign: "right", width: "10%", fontSize: "12px", padding: "5px 10px" }}>2-sort</TableCell>
+                              <TableCell sx={{ textAlign: "right", width: "5%", fontSize: "12px", padding: "5px 10px" }}>Brak</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {item.norm_category?.map((detail) => {
+                              const isEditing =
+                                editingRow.lineId === item.id && editingRow.rowId === detail.id;
 
-                                <TableCell sx={{ fontSize: "12px", padding: "2px 4px" }}>
-                                  {isEditing ? (
-                                    <Autocomplete
-                                      isOptionEqualToValue={(option, value) => option.id === value.id}
-                                      options={detail.order_detail?.variant_link || []}
-                                      getOptionLabel={(option) => option.name || ""}
-                                      value={
-                                        detail.order_detail?.variant_link.find(
-                                          (v) => v.id === detail.order_variant
-                                        ) || null
-                                      }
-                                      onChange={(e, newValue) => {
-                                        setProductionNorm((prev) =>
-                                          prev.map((line) =>
-                                            line.id === item.id
-                                              ? {
-                                                ...line,
-                                                norm_category: line.norm_category?.map((cat) =>
-                                                  cat.id === detail.id
-                                                    ? { ...cat, order_variant: newValue?.id || null }
-                                                    : cat
-                                                ),
-                                              }
-                                              : line
-                                          )
-                                        );
-                                      }}
-                                      renderInput={(params) => (
-                                        <TextField
-                                          {...params}
-                                          size="small"
-                                          label="Variant tanlang"
-                                          variant="standard"
-                                          InputProps={{ ...params.InputProps, ...commonInputProps }}
-                                          sx={commonTextFieldSx}
-                                        />
-                                      )}
-                                    />
-                                  ) : (
-                                    detail.order_variant_name
-                                  )}
-                                </TableCell>
-
-                                <TableCell sx={{ fontSize: "12px", padding: "6px 4px" }}>
-                                  {isEditing ? (
-                                    <TextField
-                                      type="number"
-                                      label="Reja"
-                                      size="small"
-                                      variant="standard"
-                                      value={detail.norm}
-                                      onChange={(e) => {
-                                        const newValue = e.target.value;
-                                        setProductionNorm((prev) =>
-                                          prev.map((line) =>
-                                            line.id === item.id
-                                              ? {
-                                                ...line,
-                                                norm_category: line.norm_category?.map((cat) =>
-                                                  cat.id === detail.id
-                                                    ? { ...cat, norm: newValue }
-                                                    : cat
-                                                ),
-                                              }
-                                              : line
-                                          )
-                                        );
-                                      }}
-                                      InputProps={commonInputProps}
-                                      sx={commonTextFieldSx}
-                                    />
-                                  ) : (
-                                    formatNumber(detail.norm)
-                                  )}
-                                </TableCell>
-
-
-
-                                {/* Bajarildi yoki Edit tugmalari */}
-                                <TableCell sx={{ textAlign: "right", padding: "2px 10px", fontSize: "12px" }}>
-                                  {isEditing ? (
-                                    <ButtonGroup size="small">
-                                      <IconButton
-                                        color="success"
-                                        onClick={() => {
-                                          // ✅ Save (masalan serverga jo‘natish mumkin)
-                                          console.log("Save:", detail);
-                                          handleEditLineNorm(detail);
+                              return (
+                                <TableRow
+                                  key={detail.id}
+                                  onDoubleClick={() => handleDoubleClick(item.id, detail.id)}
+                                  sx={{ cursor: "pointer" }}
+                                >
+                                  {/* Model nomi */}
+                                  <TableCell sx={{ fontSize: "12px", padding: "2px 4px" }}>
+                                    {isEditing ? (
+                                      <Autocomplete
+                                        isOptionEqualToValue={(option, value) => option.id === value.id}
+                                        options={orders}
+                                        getOptionLabel={(option) => option.full_name || ""}
+                                        value={detail.order_detail || null}
+                                        onChange={(e, newValue) => {
+                                          setProductionNorm(prev =>
+                                            prev.map(line =>
+                                              line.id === item.id
+                                                ? {
+                                                  ...line,
+                                                  norm_category: line.norm_category.map(cat =>
+                                                    cat.id === detail.id
+                                                      ? { ...cat, order: newValue, order_variant: null }
+                                                      : cat
+                                                  ),
+                                                }
+                                                : line
+                                            )
+                                          );
                                         }}
-                                      >
-                                        <CheckCircleOutlineIcon sx={{ fontSize: "20px" }} />
-                                      </IconButton>
-                                      <IconButton color="error" onClick={handleCloseEdit}>
-                                        <HighlightOffIcon sx={{ fontSize: "20px" }} />
-                                      </IconButton>
-                                    </ButtonGroup>
-                                  ) : (
-                                    formatNumber(detail.total_sort_1)
-                                  )}
+                                        renderInput={(params) => (
+                                          <TextField
+                                            {...params}
+                                            size="small"
+                                            label="Model tanlang"
+                                            variant="standard"
+                                            InputProps={{ ...params.InputProps, ...commonInputProps }}
+                                            sx={commonTextFieldSx}
+                                          />
+                                        )}
+                                      />
+                                    ) : (
+                                      detail.order_name
+                                    )}
+                                  </TableCell>
+
+                                  <TableCell sx={{ fontSize: "12px", padding: "2px 4px" }}>
+                                    {isEditing ? (
+                                      <Autocomplete
+                                        isOptionEqualToValue={(option, value) => option.id === value.id}
+                                        options={detail.order_detail?.variant_link || []}
+                                        getOptionLabel={(option) => option.name || ""}
+                                        value={
+                                          detail.order_detail?.variant_link.find(
+                                            (v) => v.id === detail.order_variant
+                                          ) || null
+                                        }
+                                       onChange={(e, newValue) => {
+  setProductionNorm(prev =>
+    prev.map(line =>
+      line.id === item.id
+        ? {
+            ...line,
+            norm_category: line.norm_category.map(cat =>
+              cat.id === detail.id
+                ? { ...cat, order_variant: newValue?.id || null }
+                : cat
+            ),
+          }
+        : line
+    )
+  );
+}}
+
+                                        renderInput={(params) => (
+                                          <TextField
+                                            {...params}
+                                            size="small"
+                                            label="Variant tanlang"
+                                            variant="standard"
+                                            InputProps={{ ...params.InputProps, ...commonInputProps }}
+                                            sx={commonTextFieldSx}
+                                          />
+                                        )}
+                                      />
+                                    ) : (
+                                      detail.order_variant_name
+                                    )}
+                                  </TableCell>
+
+                                  <TableCell sx={{ fontSize: "12px", padding: "6px 4px" }}>
+                                    {isEditing ? (
+                                      <TextField
+                                        type="number"
+                                        label="Reja"
+                                        size="small"
+                                        variant="standard"
+                                        value={detail.norm}
+                                        onChange={(e) => {
+                                          const newValue = e.target.value;
+                                          setProductionNorm((prev) =>
+                                            prev.map((line) =>
+                                              line.id === item.id
+                                                ? {
+                                                  ...line,
+                                                  norm_category: line.norm_category?.map((cat) =>
+                                                    cat.id === detail.id
+                                                      ? { ...cat, norm: newValue }
+                                                      : cat
+                                                  ),
+                                                }
+                                                : line
+                                            )
+                                          );
+                                        }}
+                                        InputProps={commonInputProps}
+                                        sx={commonTextFieldSx}
+                                      />
+                                    ) : (
+                                      formatNumber(detail.norm)
+                                    )}
+                                  </TableCell>
+
+
+
+                                  {/* Bajarildi yoki Edit tugmalari */}
+                                  <TableCell sx={{ textAlign: "right", padding: "2px 10px", fontSize: "12px" }}>
+                                    {isEditing ? (
+                                      <ButtonGroup size="small">
+                                        <IconButton
+                                          color="success"
+                                          onClick={() => {
+                                            // ✅ Save (masalan serverga jo‘natish mumkin)
+                                            console.log("Save:", detail);
+                                            handleEditLineNorm(detail);
+                                          }}
+                                        >
+                                          <CheckCircleOutlineIcon sx={{ fontSize: "20px" }} />
+                                        </IconButton>
+                                        <IconButton color="error" onClick={handleCloseEdit}>
+                                          <HighlightOffIcon sx={{ fontSize: "20px" }} />
+                                        </IconButton>
+                                      </ButtonGroup>
+                                    ) : (
+                                      formatNumber(detail.total_sort_1)
+                                    )}
+                                  </TableCell>
+                                  <TableCell sx={{ textAlign: "right", padding: "2px 10px", fontSize: "12px" }}>
+                                    {isEditing ? (
+                                      <></>
+                                    ) : (
+                                      formatNumber(detail.total_sort_2)
+                                    )}
+                                  </TableCell>
+                                  <TableCell sx={{ textAlign: "right", padding: "2px 10px", fontSize: "12px" }}>
+                                    {isEditing ? (
+                                      <></>
+                                    ) : (
+                                      formatNumber(detail.total_defect)
+                                    )}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+
+
+
+                            {formData[item.id]?.map((row, rowIdx) => (
+                              <TableRow key={`new-${rowIdx}`}>
+                                <TableCell>
+                                  <Autocomplete
+                                    options={orders}
+                                    getOptionLabel={(option) => option.full_name || ""}
+                                    value={row.order || null}
+                                    onChange={(e, newValue) =>
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        [item.id]: prev[item.id].map((r, i) =>
+                                          i === rowIdx
+                                            ? {
+                                              ...r,
+                                              order: newValue,
+                                              variant: null   // 🔹 yangi order tanlansa, variantni reset qilamiz
+                                            }
+                                            : r
+                                        ),
+                                      }))
+                                    }
+                                    isOptionEqualToValue={(option, value) => option.id === value?.id}
+                                    renderInput={(params) => (
+                                      <TextField
+                                        {...params}
+                                        label="Model tanlang"
+                                        sx={{
+                                          "& .MuiInputBase-input": { fontSize: "12px" },
+                                          "& .MuiInputLabel-root": { fontSize: "12px" },
+                                        }}
+                                      />
+                                    )}
+                                  />
+
                                 </TableCell>
-                                <TableCell sx={{ textAlign: "right", padding: "2px 10px", fontSize: "12px" }}>
-                                  {isEditing ? (
-                                    <></>
-                                  ) : (
-                                    formatNumber(detail.total_sort_2)
-                                  )}
+
+                                {/* Variant tanlash */}
+                                <TableCell>
+                                  <Autocomplete
+                                    options={row.order?.variant_link || []}
+                                    getOptionLabel={(option) => option.name || ""}
+                                    value={row.variant || null}
+                                    onChange={(e, newValue) =>
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        [item.id]: prev[item.id].map((r, i) =>
+                                          i === rowIdx ? { ...r, variant: newValue } : r
+                                        ),
+                                      }))
+                                    }
+                                    isOptionEqualToValue={(option, value) => option.id === value?.id}
+                                    renderInput={(params) => (
+                                      <TextField
+                                        {...params}
+                                        label="Variant tanlang"
+                                        sx={{
+                                          "& .MuiInputBase-input": { fontSize: "12px" },
+                                          "& .MuiInputLabel-root": { fontSize: "12px" },
+                                        }}
+                                      />
+                                    )}
+                                  />
                                 </TableCell>
-                                <TableCell sx={{ textAlign: "right", padding: "2px 10px", fontSize: "12px" }}>
-                                  {isEditing ? (
-                                    <></>
-                                  ) : (
-                                    formatNumber(detail.total_defect)
-                                  )}
+
+                                {/* Norm soni */}
+                                <TableCell>
+                                  <TextField
+                                    type="number"
+                                    size="small"
+                                    variant="outlined"
+                                    placeholder="Reja"
+                                    value={row.norm ?? ""}
+                                    onChange={(e) =>
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        [item.id]: prev[item.id].map((r, i) =>
+                                          i === rowIdx ? { ...r, norm: e.target.value } : r
+                                        ),
+                                      }))
+                                    }
+                                    sx={{ "& .MuiInputBase-input": { fontSize: "12px" } }}
+                                  />
+                                </TableCell>
+
+                                {/* Action tugmalar */}
+                                <TableCell sx={{ textAlign: "right" }}>
+                                  <Box >
+                                    <IconButton onClick={() => handleDeleteRow(item.id, rowIdx)}>
+                                      <HighlightOffIcon color="error" />
+                                    </IconButton>
+                                    <IconButton onClick={() => handleAddLineNorm(item.id, row, rowIdx)}>
+                                      <CheckCircleOutlineIcon color="success" />
+                                    </IconButton>
+                                  </Box>
                                 </TableCell>
                               </TableRow>
-                            );
-                          })}
+                            ))}
 
 
-
-                          {formData[item.id]?.map((row, rowIdx) => (
-                            <TableRow key={`new-${rowIdx}`}>
-                              <TableCell>
-                                <Autocomplete
-                                  options={orders}
-                                  getOptionLabel={(option) => option.full_name || ""}
-                                  value={row.order || null}
-                                  onChange={(e, newValue) =>
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      [item.id]: prev[item.id].map((r, i) =>
-                                        i === rowIdx
-                                          ? {
-                                            ...r,
-                                            order: newValue,
-                                            variant: null   // 🔹 yangi order tanlansa, variantni reset qilamiz
-                                          }
-                                          : r
-                                      ),
-                                    }))
-                                  }
-                                  isOptionEqualToValue={(option, value) => option.id === value?.id}
-                                  renderInput={(params) => (
-                                    <TextField
-                                      {...params}
-                                      label="Model tanlang"
-                                      sx={{
-                                        "& .MuiInputBase-input": { fontSize: "12px" },
-                                        "& .MuiInputLabel-root": { fontSize: "12px" },
-                                      }}
-                                    />
-                                  )}
-                                />
-
-                              </TableCell>
-
-                              {/* Variant tanlash */}
-                              <TableCell>
-                                <Autocomplete
-                                  options={row.order?.variant_link || []}
-                                  getOptionLabel={(option) => option.name || ""}
-                                  value={row.variant || null}
-                                  onChange={(e, newValue) =>
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      [item.id]: prev[item.id].map((r, i) =>
-                                        i === rowIdx ? { ...r, variant: newValue } : r
-                                      ),
-                                    }))
-                                  }
-                                  isOptionEqualToValue={(option, value) => option.id === value?.id}
-                                  renderInput={(params) => (
-                                    <TextField
-                                      {...params}
-                                      label="Variant tanlang"
-                                      sx={{
-                                        "& .MuiInputBase-input": { fontSize: "12px" },
-                                        "& .MuiInputLabel-root": { fontSize: "12px" },
-                                      }}
-                                    />
-                                  )}
-                                />
-                              </TableCell>
-
-                              {/* Norm soni */}
-                              <TableCell>
-                                <TextField
-                                  type="number"
-                                  size="small"
-                                  variant="outlined"
-                                  placeholder="Reja"
-                                  value={row.norm ?? ""}
-                                  onChange={(e) =>
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      [item.id]: prev[item.id].map((r, i) =>
-                                        i === rowIdx ? { ...r, norm: e.target.value } : r
-                                      ),
-                                    }))
-                                  }
-                                  sx={{ "& .MuiInputBase-input": { fontSize: "12px" } }}
-                                />
-                              </TableCell>
-
-                              {/* Action tugmalar */}
-                              <TableCell sx={{ textAlign: "right" }}>
-                                <Box >
-                                  <IconButton onClick={() => handleDeleteRow(item.id, rowIdx)}>
-                                    <HighlightOffIcon color="error" />
-                                  </IconButton>
-                                  <IconButton onClick={() => handleAddLineNorm(item.id, row, rowIdx)}>
-                                    <CheckCircleOutlineIcon color="success" />
-                                  </IconButton>
-                                </Box>
+                            <TableRow>
+                              <TableCell colSpan={6}>
+                                <Button
+                                  variant="contained"
+                                  onClick={() => handleAddRow(item.id)}
+                                  sx={{ fontSize: "9px", padding: "5px" }}
+                                >
+                                  ➕ Добавить план
+                                </Button>
                               </TableCell>
                             </TableRow>
-                          ))}
+                          </TableBody>
+                        </Table>
+                      </AccordionDetails>
+                    </Accordion>
 
-
-                          <TableRow>
-                            <TableCell colSpan={6}>
-                              <Button
-                                variant="contained"
-                                onClick={() => handleAddRow(item.id)}
-                                sx={{ fontSize: "9px", padding: "5px" }}
-                              >
-                                ➕ Добавить план
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
-                    </AccordionDetails>
-                  </Accordion>
-        
-                </React.Fragment>
-              )))}
+                  </React.Fragment>
+                )))}
 
 
 

@@ -21,13 +21,14 @@ const AddMonthPlaningOrder = ({ open, onClose, onAdd, }) => {
 
         order: "",
         planed_quantity: "",
+        norm_quantity: "",
         comment: ""
     });
 
   const handleAddOrder = () => {
     setEntries([
       ...entries,
-      { id: uuidv4(), order: null, planed_quantity: "",comment:"" }
+      { id: uuidv4(), order: null, norm_quantity:"",planed_quantity: "",comment:"" }
     ]);
   };
 
@@ -41,8 +42,8 @@ const AddMonthPlaningOrder = ({ open, onClose, onAdd, }) => {
         if (open) {
             const fetchData = async () => {
                 try {
-                    const optionsResponse = await getOrders();
-                    setOptionsOrder(optionsResponse.data);
+                    const optionsResponse = await getOrders({ page_size: 600 });
+                    setOptionsOrder(optionsResponse.data.results);
 
                 } catch (error) {
                     console.error("Ошибка при загрузке брендов:", error);
@@ -60,6 +61,7 @@ const AddMonthPlaningOrder = ({ open, onClose, onAdd, }) => {
 
             order: "",
             planed_quantity: "",
+            norm_quantity: "",
             comment: ""
         });
     };
@@ -74,6 +76,7 @@ const AddMonthPlaningOrder = ({ open, onClose, onAdd, }) => {
 const handleSubmit = () => {
   const data = entries.map(entry => ({
     order: entry.order?.id, // yoki kerakli field
+    norm_quantity: entry.norm_quantity, // yoki kerakli field
     planed_quantity: entry.planed_quantity,
     comment: entry.comment
   }));
@@ -93,7 +96,7 @@ console.log(data);
       if (!confirmClose) return;
     }
 
-    setEntries([{ id: uuidv4(), order: null, planed_quantity: "", comment: "" }]);
+    setEntries([{ id: uuidv4(), order: null,norm_quantity:"", planed_quantity: "", comment: "" }]);
     setOptionsOrder([]);
     onClose();
   };
@@ -144,6 +147,38 @@ console.log(data);
                             }} />
                     )}
                     sx={{ width: "55%" }}
+                />
+                     <TextField
+
+                    label="Norma"
+                    type="number"
+
+                    value={entry.norm_quantity}
+                    onChange={(e) => {
+                        const val = e.target.value;
+                        if (/^\d*$/.test(val)) {   // faqat raqam
+                             handleChangeEntry(index, "norm_quantity", val);
+                        }
+                    }}
+                    InputLabelProps={{ shrink: true }}
+                    variant="standard"
+                    inputProps={{
+                        // ✅ faqat musbat son
+                        pattern: "\\d*",
+                        inputMode: "numeric",
+
+                    }}
+                    InputProps={{
+                        style: {
+
+
+
+                            height: 30,              // 🔹 balandlik
+                            fontSize: 12
+                        },
+
+                    }}
+
                 />
                 <TextField
 

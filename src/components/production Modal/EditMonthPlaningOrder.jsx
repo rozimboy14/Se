@@ -19,6 +19,7 @@ const EditMonthPlaningOrder = ({ open, onClose, onUpdate, initialData, }) => {
 
         order: null,
         planed_quantity: "",
+        norm_quantity:"",
         comment: ""
     });
 
@@ -27,8 +28,8 @@ const EditMonthPlaningOrder = ({ open, onClose, onUpdate, initialData, }) => {
         if (open) {
             const fetchData = async () => {
                 try {
-                    const optionsResponse = await getOrders();
-                    setOptionsOrder(optionsResponse.data);
+                    const optionsResponse = await getOrders({ page_size: 600 });
+                    setOptionsOrder(optionsResponse.data.results);
 
                 } catch (error) {
                     console.error("Ошибка при загрузке брендов:", error);
@@ -37,11 +38,15 @@ const EditMonthPlaningOrder = ({ open, onClose, onUpdate, initialData, }) => {
             fetchData();
         }
     }, [open]);
+
+
+    
     useEffect(() => {
         if (open && initialData) {
             setForm({
                 order: initialData.order?.id || initialData.order_detail.id,
                 comment: initialData.comment || "",
+                norm_quantity:initialData.norm_quantity,
                 planed_quantity: initialData.planed_quantity,
             });
         }
@@ -60,6 +65,7 @@ const EditMonthPlaningOrder = ({ open, onClose, onUpdate, initialData, }) => {
         setForm({
 
             order: null,
+            norm_quantity:"",
             planed_quantity: "",
             comment: ""
         });
@@ -73,6 +79,7 @@ const EditMonthPlaningOrder = ({ open, onClose, onUpdate, initialData, }) => {
         const data = new FormData();
 if (form.order) data.append("order", form.order.id || form.order);
 
+        if (form.norm_quantity) data.append("norm_quantity", form.norm_quantity);
         if (form.planed_quantity) data.append("planed_quantity", form.planed_quantity);
         if (form.comment.trim()) data.append("comment", form.comment.trim());
 
@@ -128,6 +135,38 @@ if (form.order) data.append("order", form.order.id || form.order);
                             }} />
                     )}
                     sx={{ width: "55%" }}
+                />
+                  <TextField
+
+                    label="norma"
+                    type="number"
+
+                    value={form.norm_quantity}
+                    onChange={(e) => {
+                        const val = e.target.value;
+                        if (/^\d*$/.test(val)) {   // faqat raqam
+                            setForm({ ...form, norm_quantity: val });
+                        }
+                    }}
+                    InputLabelProps={{ shrink: true }}
+                    variant="standard"
+                    inputProps={{
+                        // ✅ faqat musbat son
+                        pattern: "\\d*",
+                        inputMode: "numeric",
+
+                    }}
+                    InputProps={{
+                        style: {
+
+
+
+                            height: 30,              // 🔹 balandlik
+                            fontSize: 12
+                        },
+
+                    }}
+     
                 />
                 <TextField
 

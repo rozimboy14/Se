@@ -12,13 +12,17 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { getAccessory } from "../api/axios";
+import useDebounce from "../../hooks/useDebounce";
 
 const AddAccessoryStockEntry = ({ openAccessory, onCloseAccesory, onAddAccessory }) => {
   const [entries, setEntries] = useState([
     { id: uuidv4(), accessory: null, quantity: "" }
   ]);
   const [AccessoryOptions, setaccessoryOptions] = useState([]);
+    const [searchText, setSearchText] = useState("");
+  const debouncedBrandSearch = useDebounce(searchText, 500);
 
+  const[loadingFetch,setLoadingFetch]=useState(false)
   const handleAddRow = () => {
     setEntries([
       ...entries,
@@ -38,20 +42,30 @@ const AddAccessoryStockEntry = ({ openAccessory, onCloseAccesory, onAddAccessory
     setEntries(entries.filter((_, i) => i !== index));
   };
 
-  useEffect(() => {
-    if (openAccessory) {
-      const fetchData = async () => {
-        try {
-          const accessoryResponse = await getAccessory();
-          setaccessoryOptions(accessoryResponse.data);
-          console.log( accessoryResponse.data)
-        } catch (error) {
-          console.error("Ошибка при загрузке категорий:", error);
-        }
-      };
-      fetchData();
+useEffect(() => {
+  if (!open) return;
+
+  const fetchData = async () => {
+    setLoadingFetch(true);
+    try {
+      const params = debouncedBrandSearch?.trim()
+        ? { search: debouncedBrandSearch, page_size: 20 }
+        : { page_size: 20 };
+      const res = await getAccessory(params);
+      setaccessoryOptions(res.data.results);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingFetch(false);
     }
-  }, [openAccessory]);
+  };
+
+  fetchData();
+
+  if (entries.length === 0) {
+    setEntries([{ id: uuidv4(), order: null, variants: [] }]);
+  }
+}, [debouncedBrandSearch, open]);
 
   const handleSubmit = () => {
     const payload = entries.map((entry) => ({
@@ -112,6 +126,7 @@ const AddAccessoryStockEntry = ({ openAccessory, onCloseAccesory, onAddAccessory
           >
             <Autocomplete
               options={AccessoryOptions}
+                loading={loadingFetch}
              getOptionLabel={(option) => {
                 const art = option.name || "";
                 const spec = option.brand_name || "";
@@ -122,6 +137,10 @@ const AddAccessoryStockEntry = ({ openAccessory, onCloseAccesory, onAddAccessory
               onChange={(e, value) =>
                 handleEntryChange(index, "accessory", value)
               }
+                                onInputChange={(e, value) => {
+    setSearchText(value);
+  }}
+    
               renderInput={(params) => (
                 <TextField
                   {...params}

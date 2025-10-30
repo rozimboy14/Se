@@ -66,6 +66,9 @@ export const logout = () => {
 export const getBrand = (params = {}) => {
   return api.get(`/sewing/brand/`, { params });
 };
+export const getBrandOptions = (query = "") => {
+  return api.get(`/sewing/brand-options/?search=${encodeURIComponent(query)}`);
+};
 
 export const postBrand = (data) =>
   api.post(`/sewing/brand/`, data, {

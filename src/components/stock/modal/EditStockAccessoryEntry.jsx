@@ -6,143 +6,164 @@ import {
   DialogActions,
   Button,
   TextField,
-  Autocomplete
+  Autocomplete,
+  IconButton,
+  Box
 } from "@mui/material";
-
+import CloseIcon from "@mui/icons-material/Close";
+import { v4 as uuidv4 } from "uuid";
 import { getAccessory } from "../../api/axios";
-import { interpolate } from "framer-motion";
+import useDebounce from "../../../hooks/useDebounce";
+
 
 const EditStockAccessoryEntry = ({ open, onClose, onEdit, initialData }) => {
-  const [form, setForm] = useState({
-    accessory: null,
-    quantity: ""
-  });
-console.log(form);
+  const [entries, setEntries] = useState([]);
+  const [accessoryOptions, setAccessoryOptions] = useState([]);
+  const [loadingFetch, setLoadingFetch] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const debouncedSearch = useDebounce(searchText, 500);
 
-  const [accessoryOptions, setAccessoryOrderOptions] = useState([]);
-
+  // =====================
+  // Initial accessory fetch
+  // =====================
   useEffect(() => {
-    if (open) {
-      const fetchData = async () => {
-        try {
-          const accessoryRes = await getAccessory();
-          setAccessoryOrderOptions(accessoryRes.data);
-        } catch (error) {
-          console.error("Ошибка при загрузке заказов:", error);
+    if (!initialData?.accessory) return;
+
+    const fetchInitialAccessory = async () => {
+      try {
+        const res = await getAccessory({ id: initialData.accessory });
+        const accessory = res.data.results[0];
+        if (accessory) {
+          setAccessoryOptions([accessory]);
+          setEntries([
+            {
+              id: uuidv4(),
+              accessory: accessory,
+              quantity: initialData.quantity || ""
+            }
+          ]);
         }
-      };
-      fetchData();
-    }
-  }, [open]);
+      } catch (err) {
+        console.error(err);
+      }
+    };
 
-  // Fill form with initial data
-useEffect(() => {
-  if (initialData && accessoryOptions.length > 0) {
-    const matchedAccessory = accessoryOptions.find(
-      (b) => b.id === initialData.accessory?.id
-    ) || null;
-    console.log(initialData);
-    
-console.log(matchedAccessory);
+    fetchInitialAccessory();
+  }, [initialData]);
 
-    setForm({
-      accessory: matchedAccessory,
-      quantity: String(initialData.quantity || "")
-    });
-  }
-}, [initialData, accessoryOptions]);
+  // =====================
+  // Live search
+  // =====================
+  useEffect(() => {
+    if (!debouncedSearch?.trim()) return;
+    setLoadingFetch(true);
 
-console.log(initialData);
+    const fetchAccessories = async () => {
+      try {
+        const res = await getAccessory({ search: debouncedSearch, page_size: 20 });
+        setAccessoryOptions(prev => {
+          const selected = entries[0]?.accessory;
+          const merged = selected
+            ? [selected, ...res.data.results.filter(a => a.id !== selected.id)]
+            : res.data.results;
+          return merged;
+        });
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingFetch(false);
+      }
+    };
 
-  const handleChange = (field, value) => {
-    setForm(prev => ({ ...prev, [field]: value }));
+    fetchAccessories();
+  }, [debouncedSearch]);
+
+  // =====================
+  // Handlers
+  // =====================
+  const handleAccessoryChange = (index, value) => {
+    const updated = [...entries];
+    updated[index].accessory = value;
+    setEntries(updated);
   };
-const handleSubmit = () => {
-  onEdit({
-    id: initialData.id,
-    accessory: form.accessory ? form.accessory.id : null,
-    quantity: form.quantity ? Number(form.quantity.replace(/\s/g, "")) : null
-  });
-  handleClose();
-};
+
+  const handleQuantityChange = (index, value) => {
+    const updated = [...entries];
+    updated[index].quantity = value;
+    setEntries(updated);
+  };
+
+  const handleSubmit = () => {
+    if (!entries.length) return;
+    const entry = entries[0];
+    onEdit({
+      id: initialData?.id,
+      accessory: entry.accessory?.id || null,
+      quantity: entry.quantity ? Number(entry.quantity) : null
+    });
+    handleClose();
+  };
 
   const handleClose = () => {
-    setForm({ accessory: null, quantity: "" });
+    setEntries([]);
     onClose();
   };
 
+  // =====================
+  // Render
+  // =====================
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      PaperProps={{ style: { width: "900px", padding: "15px" } }}
-      maxWidth={false}
-      fullWidth={false}
-    >
-      <DialogTitle>Редактировать артикул</DialogTitle>
-      <DialogContent sx={{display:"flex",     alignItems: "center",gap:"6px", overflow: "unset", padding: 0 }}>
-        <Autocomplete
-          options={accessoryOptions}
-            getOptionLabel={(option) => {
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+      <DialogTitle>Редактировать аксессуар</DialogTitle>
+      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {entries.map((entry, index) => (
+          <Box key={entry.id} sx={{ border: "1px solid #ddd", p: 2, borderRadius: 2, display: "flex", gap: 1, alignItems: "center" }}>
+            <Autocomplete
+              options={accessoryOptions}
+              value={entry.accessory || null}
+              onChange={(e, value) => handleAccessoryChange(index, value)}
+              getOptionLabel={(option) => {
                 const art = option.name || "";
-                const spec = option.brand_name || "";
-                const com = option.comment || "";
-                return `${art} -${com}- ${spec}`.trim();
+                const brand = option.brand_name || "";
+                const comment = option.comment || "";
+                return `${art} -${comment}- ${brand}`.trim();
               }}
-        value={form.accessory || null}
-          onChange={(e, value) => handleChange("accessory", value)}
-          renderInput={(params) => (
-            <TextField {...params} label="Аксессуарь"    InputProps={{
-                    ...params.InputProps,
-                    sx: {
-                      height: 35,
-                      fontSize: 13
-                    }
-                  }}
-                    sx={{
-                      "& .MuiInputLabel-root": {
-                        fontSize: "12px",
-                        top: "-7px"
-                      },
-                    }} />
-          )}
-                        sx={{ width: "70%", padding: "3px" }}
-        />
-        <TextField
-          fullWidth
-          label="Кол-во"
-         value={
-  form.quantity
-    ? Number(form.quantity.replace(/\s/g, "")).toLocaleString("ru-RU")
-    : ""
-}
-          onChange={(e) => {
-            const rawValue = e.target.value.replace(/\s/g, "").replace(/\D/g, "");
-            handleChange("quantity", rawValue);
-          }}
-          variant="outlined"
-     InputProps={{
-                    sx: {
-                      height: 35,              // 🔹 balandlik
-                      fontSize: 13             // 🔹 shrift
-                    }
-                  }}
-                  sx={{
-                    mt: 1, mb: 1, width: "20%",
-                    "& .MuiInputLabel-root": {
-                      fontSize: "13px",   // Label shrift
-                      top: "-7px"    // Label rangi
-                    },
-                  }}
-        />
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              onInputChange={(e, value) => setSearchText(value)}
+              loading={loadingFetch}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Аксессуар"
+                  size="small"
+                  InputProps={{ ...params.InputProps, sx: { height: 35, fontSize: 13 } }}
+                  sx={{ "& .MuiInputLabel-root": { fontSize: "12px", top: "-7px" } }}
+                />
+              )}
+              sx={{ flex: 1 }}
+            />
+
+            <TextField
+              label="Кол-во"
+              value={entry.quantity ? Number(entry.quantity).toLocaleString("ru-RU") : ""}
+              onChange={(e) => {
+                const rawValue = e.target.value.replace(/\D/g, "");
+                handleQuantityChange(index, rawValue);
+              }}
+              size="small"
+              InputProps={{ sx: { height: 35, fontSize: 13 } }}
+              sx={{ width: "150px" }}
+            />
+
+            <IconButton color="error" onClick={handleClose}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        ))}
       </DialogContent>
-      <DialogActions sx={{ mt: 2 }}>
-        <Button variant="outlined" color="error" onClick={handleClose}>
-          Отмена
-        </Button>
-        <Button onClick={handleSubmit} variant="contained">
-          Сохранить
-        </Button>
+      <DialogActions>
+        <Button variant="outlined" color="error" onClick={handleClose}>Отмена</Button>
+        <Button variant="contained" onClick={handleSubmit}>Сохранить</Button>
       </DialogActions>
     </Dialog>
   );

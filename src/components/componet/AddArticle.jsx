@@ -17,6 +17,7 @@ import {
   getAccessory,
 } from "../api/axios";
 import { debounce } from "lodash";
+import useDebounce from "../../hooks/useDebounce";
 const AddArticle = ({ open, onClose, onAdd }) => {
   const [form, setForm] = useState({
     name: "",
@@ -33,6 +34,7 @@ const AddArticle = ({ open, onClose, onAdd }) => {
   const [packagingOptions, setPackagingOptions] = useState([]);
   const [accessoryOptions, setAccessoryOptions] = useState([]);
 const [searchText, setSearchText] = useState("");
+
   const [loadingFetch, setLoadingFetch ] = useState(false);
   useEffect(() => {
     if (open) {
@@ -69,6 +71,9 @@ const debouncedFetch = debounce(async (text, setBrand, setLoadingFetch) => {
     setLoadingFetch(false);
   }
 }, 300); // 300ms delay
+
+
+
 
 useEffect(() => {
   debouncedFetch(searchText, setBrandOptions, setLoadingFetch);

@@ -20,7 +20,7 @@ const [form, setForm] = useState({
   line: [],
 });
 
-    console.log(form);
+
 
   const handleSubmit = () => {
 
@@ -50,7 +50,6 @@ useEffect(() => {
 
           setLine(filtered);
         } catch (error) {
-          console.error("Ошибка при загрузке линий:", error);
         }
       };
 

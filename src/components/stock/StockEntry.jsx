@@ -211,9 +211,12 @@ console.log(item);
     if (!editStockEntry) return;
     try {
       const res = await patchStockEntry(editStockEntry.id,payload);
-      setStockEntry(prev =>
-        prev.map(b => (b.id === editStockEntry.id ? res.data : b))
-      );
+    setStockEntry(prev => ({
+      ...prev,
+      stock_entries: prev.stock_entries.map(b =>
+        b.id === editStockEntry.id ? res.data : b
+      ),
+    }));
     } catch (err) {
       console.error("Edit failed:", err);
     } finally {

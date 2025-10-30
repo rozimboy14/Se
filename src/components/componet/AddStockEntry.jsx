@@ -14,29 +14,43 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { getOrders } from "../api/axios";
+import useDebounce from "../../hooks/useDebounce";
 
 const AddStockEntry = ({ open, onClose, onAdd }) => {
   const [entries, setEntries] = useState([]);
   const [ordersOptions, setOrdersOptions] = useState([]);
+  const[loadingFetch,setLoadingFetch]=useState(false)
+  const [searchText, setSearchText] = useState("");
+const debouncedBrandSearch = useDebounce(searchText, 500);
 
-  useEffect(() => {
-    if (open) {
-      const fetchData = async () => {
-        try {
-          const orderResponse = await getOrders();
-          setOrdersOptions(orderResponse.data);
-        } catch (error) {
-          console.error("Ошибка при загрузке orders:", error);
-        }
-      };
-      fetchData();
 
-      // 🔹 Default bitta order bo‘lsin
-      if (entries.length === 0) {
-        setEntries([{ id: uuidv4(), order: null, variants: [] }]);
-      }
+
+
+useEffect(() => {
+  if (!open) return;
+
+  const fetchData = async () => {
+    setLoadingFetch(true);
+    try {
+      const params = debouncedBrandSearch?.trim()
+        ? { search: debouncedBrandSearch, page_size: 20 }
+        : { page_size: 20 };
+      const res = await getOrders(params);
+      setOrdersOptions(res.data.results);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingFetch(false);
     }
-  }, [open]);
+  };
+
+  fetchData();
+
+  if (entries.length === 0) {
+    setEntries([{ id: uuidv4(), order: null, variants: [] }]);
+  }
+}, [debouncedBrandSearch, open]);
+
 
   const handleAddOrder = () => {
     setEntries([
@@ -136,11 +150,15 @@ const AddStockEntry = ({ open, onClose, onAdd }) => {
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Autocomplete
                 options={ordersOptions}
+                loading={loadingFetch}
                 getOptionLabel={(option) =>
                   `${option.article_name || ""} - ${option.specification_name || ""}`
                 }
                 value={entry.order}
                 onChange={(e, value) => handleOrderChange(orderIndex, value)}
+                  onInputChange={(e, value) => {
+    setSearchText(value);
+  }}
                 renderInput={(params) => (
                   <TextField {...params} label="Order" size="small" InputProps={{
                     ...params.InputProps,

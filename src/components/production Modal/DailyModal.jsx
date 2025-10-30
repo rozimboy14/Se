@@ -100,6 +100,7 @@ const handleQuantityChange = (lineId, rowIndex, field, value) => {
             return { ...prev, [lineId]: updatedRows };
         });
     };
+    
     const handleSubmit = () => {
         const payload = {
             production_report: reportId,

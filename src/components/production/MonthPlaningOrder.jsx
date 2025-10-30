@@ -71,6 +71,7 @@ function MonthPlaningOrder() {
         const data = item.map(entry => ({
             month_planing: parseInt(monthId, 10),
             order: entry.order,
+            norm_quantity: Number(entry.norm_quantity),
             planed_quantity: Number(entry.planed_quantity),
             comment: entry.comment
         }));
@@ -107,9 +108,12 @@ function MonthPlaningOrder() {
         if (!editMonthPlaningOrder) return;
         try {
             const res = await patchMonthPlaningOrder(editMonthPlaningOrder.id, edited);
-            setMonthPlaningOrder(prev =>
-                prev.map(b => (b.id === editMonthPlaningOrder.id ? res.data : b))
-            );
+               setMonthPlaningOrder(prev => ({
+            ...prev,
+            month_planing_orders: prev.month_planing_orders.map(b =>
+                b.id === editMonthPlaningOrder.id ? res.data : b
+            ),
+        }));
         } catch (err) {
             console.error("Edit failed:", err);
         } finally {
@@ -193,6 +197,7 @@ function MonthPlaningOrder() {
                                 <TableCell sx={{ width: '10%', textAlign: "center", fontWeight: "500", padding: "5px 10px", fontSize: "12px", borderLeft: "1px solid #C9C9C9" }}>Brend</TableCell>
                                 <TableCell sx={{ width: '10%', textAlign: "center", fontWeight: "500", padding: "5px 10px", fontSize: "12px", borderLeft: "1px solid #C9C9C9" }}>Sezon</TableCell>
                                 <TableCell sx={{ width: '20%', textAlign: "center", fontWeight: "500", padding: "5px 10px", fontSize: "12px", borderLeft: "1px solid #C9C9C9" }}>Model</TableCell>
+                                <TableCell sx={{ width: '5%', textAlign: "center", fontWeight: "500", padding: "5px 10px", fontSize: "12px", borderLeft: "1px solid #C9C9C9" }}>Norma</TableCell>
                                 <TableCell sx={{ width: '5%', textAlign: "center", fontWeight: "500", padding: "5px 10px", fontSize: "12px", borderLeft: "1px solid #C9C9C9" }}>Reja</TableCell>
                                 <TableCell sx={{ width: '7%', textAlign: "center", fontWeight: "500", padding: "5px 10px", fontSize: "12px", borderLeft: "1px solid #C9C9C9" }}>Bajarildi</TableCell>
                                 <TableCell sx={{ width: '8%', textAlign: "center", fontWeight: "500", padding: "5px 10px", fontSize: "12px", borderLeft: "1px solid #C9C9C9" }}>Kroy</TableCell>
@@ -213,6 +218,7 @@ function MonthPlaningOrder() {
                                         {item.order_detail.specification_name}
                                     </TableCell>
                                     <TableCell sx={{ textAlign: "center", fontSize: "12px", padding: "6px 10px" }}>{item.order_detail.article_name}</TableCell>
+                                    <TableCell sx={{ textAlign: "center", fontSize: "12px", padding: "6px 10px" }}>{item.norm_quantity}</TableCell>
                                     <TableCell sx={{ textAlign: "center", fontSize: "12px", padding: "6px 10px" }}>{formatNumber(item.planed_quantity)}</TableCell>
                                     <TableCell sx={{ textAlign: "center", fontSize: "12px", padding: "6px 10px" }}>{formatNumber(item.fact_quantity)}</TableCell>
                                     <TableCell sx={{ textAlign: "center", fontSize: "12px", padding: "6px 10px" }}>{formatNumber(item.stock_quantity)}</TableCell>

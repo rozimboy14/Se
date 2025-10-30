@@ -1,4 +1,4 @@
-import React, { useEffect, useState,useCallback  } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -9,8 +9,8 @@ import {
   Autocomplete,
   Box
 } from "@mui/material";
-import { getAccessory, getBrand, getPackagingCategory, getSewinggCategory } from "../api/axios";
-import { debounce } from "lodash";
+import { getAccessory, getBrand, getBrandOptions, getPackagingCategory, getSewinggCategory } from "../api/axios";
+import useDebounce from "../../hooks/useDebounce";
 const EditArticle = ({ open, onClose, onUpdate, initialData }) => {
   const [form, setForm] = useState({
     name: "",
@@ -26,9 +26,10 @@ const EditArticle = ({ open, onClose, onUpdate, initialData }) => {
   const [packagingOptions, setPackagingOptions] = useState([]);
   const [brandOptions, setBrandOptions] = useState([]);
   const [accessoryOptions, setAccessoryOptions] = useState([]);
-  const [searchText, setSearchText] = useState("");
+const [inputValue, setInputValue] = useState("");
   const [loadingFetch, setLoadingFetch] = useState(false);
   const [inputBrandText, setInputBrandText] = useState("");
+const debouncedValue = useDebounce(inputValue, 400);
   // Kategoriyalarni yuklash
   useEffect(() => {
     if (open) {
@@ -36,12 +37,10 @@ const EditArticle = ({ open, onClose, onUpdate, initialData }) => {
         try {
           const [packRes, sewRes, accessoryRes] = await Promise.all([
             getPackagingCategory(),
-
             getSewinggCategory(),
             getAccessory(),
           ]);
           setPackagingOptions(packRes.data);
-
           setSewingOptions(sewRes.data);
           setAccessoryOptions(accessoryRes.data);
         } catch (error) {
@@ -51,63 +50,52 @@ const EditArticle = ({ open, onClose, onUpdate, initialData }) => {
       fetchData();
     }
   }, [open]);
-useEffect(() => {
-  if (initialData && open && brandOptions.length) {
-    const brand = brandOptions.find((b) => b.id === initialData.brand) || null;
-    setForm((prev) => ({ ...prev, brand }));
-    setInputBrandText(brand?.name || "");
-  }
-}, [initialData, brandOptions, open]);
+  useEffect(() => {
+    if (initialData && open && brandOptions.length) {
+      const brand = brandOptions.find((b) => b.id === initialData.brand) || null;
+      setForm((prev) => ({ ...prev, brand }));
+      setInputBrandText(brand?.name || "");
+    }
+  }, [initialData, brandOptions, open]);
 
   // initialData + options kelganda formni set qilish
   useEffect(() => {
- if (initialData && open)  {
+    if (initialData && open) {
+      const brand = brandOptions.find((b) => b.id === initialData.brand) || null;
       setForm({
         name: initialData.name || "",
         article: initialData.article || "",
-        brand: brandOptions.find((b) => b.id === initialData.brand) || null,
-        sewing_category:
-          sewingOptions.find((s) => s.id === initialData.sewing_category) ||
-          null,
-        packaging_category:
-          packagingOptions.find((p) => p.id === initialData.packaging_category) ||
-          null,
-        // 🔹 accessory_link backenddan keladi
-        accessories:
-          initialData.accessory_link?.map((a) => ({
-            accessory:
-              accessoryOptions.find((opt) => opt.id === a.accessory) || null,
-            quantity: a.quantity || "",
-          })) || [],
+        brand,
+        sewing_category: sewingOptions.find(s => s.id === initialData.sewing_category) || null,
+        packaging_category: packagingOptions.find(p => p.id === initialData.packaging_category) || null,
+        accessories: initialData.accessory_link?.map(a => ({
+          accessory: accessoryOptions.find(opt => opt.id === a.accessory) || null,
+          quantity: a.quantity || "",
+        })) || [],
         image: initialData.image || null,
       });
+      setInputBrandText(brand?.name || "");
     }
-  }, [
-    initialData,
-    brandOptions,
-    sewingOptions,
-    packagingOptions,
-    accessoryOptions,
-  ]);
+  }, [initialData, open, sewingOptions, packagingOptions, accessoryOptions, brandOptions]);
 
 
-  const debouncedFetch = debounce(async (text, setBrand, setLoadingFetch) => {
-    setLoadingFetch(true);
-    try {
-      const response = await getBrand({ search: text, page_size: 20 });
-      setBrandOptions(response.data.results);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoadingFetch(false);
-    }
-  }, 300); // 300ms delay
+  // 👇 faqat debounced qiymat o‘zgarganda API chaqiriladi
 
-useEffect(() => {
-  if (searchText !== form.brand?.name) { // tanlangan optionni yozib yubormaslik
-    debouncedFetch(searchText, setBrandOptions, setLoadingFetch);
-  }
-}, [searchText]);
+  useEffect(() => {
+    const fetchBrands = async () => {
+      setLoadingFetch(true);
+      try {
+        const res = await getBrandOptions(); // 🔹 faqat bir marta chaqiriladi
+        setBrandOptions(res.data);
+      } catch (err) {
+        console.error("Brendlar yuklashda xatolik:", err);
+      } finally {
+        setLoadingFetch(false);
+      }
+    };
+    fetchBrands();
+  }, []);
+
 
   const handleChange = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
@@ -233,20 +221,11 @@ useEffect(() => {
 
 
             <Autocomplete
-              options={brandOptions}
-              value={form.brand}
-                onChange={(e, newValue) => {
-    setForm({ ...form, brand: newValue });
-    setInputBrandText(newValue?.name || "");
-  }}
-  inputValue={inputBrandText}
-                onInputChange={(e, newInputValue, reason) => {
-    if (reason === "input") {
-      setInputBrandText(newInputValue);
-      debouncedFetch(newInputValue, setBrandOptions, setLoadingFetch);
-    }
-  }}
-              getOptionLabel={(option) => option.name || ""}
+            options={brandOptions}
+      value={form.brand}
+      onChange={(e, newValue) => setForm({ ...form, brand: newValue })}
+      getOptionLabel={(option) => option?.name || ""}
+      loading={loadingFetch}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -254,19 +233,20 @@ useEffect(() => {
                   InputProps={{
                     ...params.InputProps,
                     sx: {
-                      height: 35,        // 🔹 balandlik
-                      fontSize: 14       // 🔹 shrift
-                    }
+                      height: 35,
+                      fontSize: 14,
+                    },
                   }}
                   sx={{
                     "& .MuiInputLabel-root": {
-                      fontSize: "14px",   // Label shrift
-                      top: "-7px"    // Label rangi
+                      fontSize: "14px",
+                      top: "-7px",
                     },
                   }}
                 />
               )}
             />
+
           </Box >
           <Box sx={{ width: "30%" }}>
 
